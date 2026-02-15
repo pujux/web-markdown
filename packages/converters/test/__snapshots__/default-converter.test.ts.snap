@@ -3,7 +3,7 @@
 exports[`createDefaultConverter > converts html to stable markdown with front matter and absolute URLs 1`] = `
 "---
 title: Demo page
-url: https://example.com/guide
+url: https://canonical.example.com/reference
 lang: en
 description: Demonstration document
 canonical: https://canonical.example.com/reference
@@ -18,6 +18,33 @@ canonical: https://canonical.example.com/reference
 \`\`\`ts
 console.log('hi')
 \`\`\`
+"
+`;
+
+exports[`createDefaultConverter > hardens content extraction for non-semantic pages 1`] = `
+"# Designing Better APIs
+
+ Clear boundaries and explicit defaults reduce accidental complexity.
+
+ Build adapters as thin composition layers and keep shared logic reusable.
+
+- Define ownership
+- Preserve protocol semantics
+- Test integration paths
+"
+`;
+
+exports[`createDefaultConverter > prefers canonical metadata and og fallbacks for front matter 1`] = `
+"---
+title: Alpha via OG
+url: https://docs.example.org/posts/alpha
+description: Metadata from OG description
+canonical: https://docs.example.org/posts/alpha
+---
+
+Main body paragraph.
+
+[Continue reading](https://docs.example.org/posts/next)
 "
 `;
 

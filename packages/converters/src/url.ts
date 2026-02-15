@@ -1,5 +1,19 @@
 const ABSOLUTE_SCHEME_PATTERN = /^[a-z][a-z\d+.-]*:/i;
 
+export function normalizeDocumentUrl(url: string | undefined): string | undefined {
+  if (!url) {
+    return undefined;
+  }
+
+  try {
+    const parsed = new URL(url);
+    parsed.hash = '';
+    return parsed.toString();
+  } catch {
+    return undefined;
+  }
+}
+
 export function resolveUrl(url: string | undefined, baseUrl: string | undefined): string | undefined {
   if (!url) {
     return undefined;
@@ -16,7 +30,7 @@ export function resolveUrl(url: string | undefined, baseUrl: string | undefined)
 
   try {
     if (ABSOLUTE_SCHEME_PATTERN.test(trimmed)) {
-      return new URL(trimmed).toString();
+      return normalizeDocumentUrl(new URL(trimmed).toString());
     }
 
     if (trimmed.startsWith('//')) {
@@ -25,14 +39,14 @@ export function resolveUrl(url: string | undefined, baseUrl: string | undefined)
       }
 
       const base = new URL(baseUrl);
-      return `${base.protocol}${trimmed}`;
+      return normalizeDocumentUrl(`${base.protocol}${trimmed}`);
     }
 
     if (!baseUrl) {
       return undefined;
     }
 
-    return new URL(trimmed, baseUrl).toString();
+    return normalizeDocumentUrl(new URL(trimmed, baseUrl).toString());
   } catch {
     return undefined;
   }

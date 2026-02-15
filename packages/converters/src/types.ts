@@ -15,6 +15,7 @@ export interface DefaultConverterOptions {
   mode?: ConverterMode;
   addFrontMatter?: boolean;
   stripSelectors?: string[];
+  contentMinTextLength?: number;
   rewriteLink?: (url: string, ctx: UrlRewriteContext) => string;
   rewriteImage?: (url: string, ctx: UrlRewriteContext) => string;
   defaultStripSelectors?: string[];

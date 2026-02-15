@@ -44,6 +44,7 @@ Supported converter options:
 - `mode: 'verbatim' | 'content'`
 - `addFrontMatter: boolean`
 - `stripSelectors: string[]`
+- `contentMinTextLength: number` (content mode extraction threshold, default `140`)
 - `rewriteLink(url, ctx)`
 - `rewriteImage(url, ctx)`
 - `frontMatterFields` (defaults: `title`, `url`, `lang`, `description`, `canonical`)
@@ -126,6 +127,11 @@ Adapter notes:
 - Uses fetch-native request/response wrappers so route handlers stay framework-thin.
 - Shares all negotiation, size limits, and header semantics with `transformFetchResponse`.
 
+## Content mode behavior
+- Removes common boilerplate selectors (navigation/footer/cookie and similar chrome).
+- Selects primary content by semantic root first (`main`/`article`), then uses structural scoring fallback for non-semantic pages.
+- Prunes likely boilerplate subtrees by link-density and UI-hint patterns (`related`, `sidebar`, `breadcrumbs`, etc).
+
 ## HTTP semantics and caching notes
 - No explicit `text/markdown` in `Accept`: pass through original response.
 - Redirects (`3xx`): never transformed.
@@ -139,6 +145,12 @@ Adapter notes:
 - On transformed responses:
   - `Content-Type` is set to `text/markdown; charset=utf-8`.
   - `Content-Length`, `Content-Encoding`, and `ETag` are removed because the payload changes.
+
+## Front matter metadata behavior
+- `canonical` is populated from `link[rel=canonical]`, then `og:url`, then `twitter:url`.
+- `url` uses best available source in order: canonical URL, response URL, request URL.
+- URL fragments are removed from metadata URLs and rewritten absolute links for stability.
+- `title` and `description` fall back through standard metadata tags (`title`, `og:*`, `twitter:*`).
 
 ## Observability
 `transformFetchResponse` exposes `onObservation` with:
@@ -169,4 +181,4 @@ pnpm build
 - M1 complete: core negotiation, fetch transformer, default converter, semantics + snapshot tests.
 - M2 complete: Express adapter and integration tests.
 - M3 complete: Next adapter + playground demo.
-- M4 planned: content extraction hardening + canonicalization refinements.
+- M4 complete: content extraction hardening + canonicalization/front-matter refinements.

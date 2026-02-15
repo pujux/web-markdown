@@ -33,6 +33,32 @@ describe('createDefaultConverter', () => {
     expect(markdown).toMatchSnapshot();
   });
 
+  it('hardens content extraction for non-semantic pages', async () => {
+    const converter = createDefaultConverter({
+      mode: 'content'
+    });
+
+    const markdown = await converter.convert(fixture('content-hardening.html'), {
+      requestUrl: 'https://example.com/blog/apis'
+    });
+
+    expect(markdown).toMatchSnapshot();
+  });
+
+  it('prefers canonical metadata and og fallbacks for front matter', async () => {
+    const converter = createDefaultConverter({
+      mode: 'content',
+      addFrontMatter: true
+    });
+
+    const markdown = await converter.convert(fixture('canonical-metadata.html'), {
+      requestUrl: 'https://request.example.com/source#frag',
+      responseUrl: 'https://response.example.com/fallback#hash'
+    });
+
+    expect(markdown).toMatchSnapshot();
+  });
+
   it('applies link and image rewrite hooks', async () => {
     const converter = createDefaultConverter({
       rewriteLink: (url) => `${url}?src=md`,
@@ -48,5 +74,20 @@ describe('createDefaultConverter', () => {
 
     expect(markdown).toContain('[A](https://example.com/a?src=md)');
     expect(markdown).toContain('![I](https://example.com/img.png?img=1)');
+  });
+
+  it('uses normalized response url when canonical metadata is absent', async () => {
+    const converter = createDefaultConverter({
+      mode: 'content',
+      addFrontMatter: true
+    });
+
+    const markdown = await converter.convert('<html><body><main><p>Hello</p></main></body></html>', {
+      requestUrl: 'https://request.example.com/a#ignore',
+      responseUrl: 'https://response.example.com/b?q=1#ignore'
+    });
+
+    expect(markdown).toContain('url: https://response.example.com/b?q=1');
+    expect(markdown).not.toContain('#ignore');
   });
 });

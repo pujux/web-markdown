@@ -2,9 +2,10 @@ import type { HtmlToMarkdownConverter, MarkdownTransformContext } from '@web-mar
 import { parseHTML } from 'linkedom';
 import { NodeHtmlMarkdown } from 'node-html-markdown';
 
+import { hardenContentTree, pickContentRoot } from './content-extractor';
 import { buildFrontMatter } from './frontmatter';
 import type { ConversionMetadata, DefaultConverterOptions, UrlRewriteContext } from './types';
-import { resolveUrl, shouldSkipRewrite } from './url';
+import { normalizeDocumentUrl, resolveUrl, shouldSkipRewrite } from './url';
 
 const DEFAULT_FRONTMATTER_FIELDS: Required<Pick<DefaultConverterOptions, 'frontMatterFields'>>['frontMatterFields'] = [
   'title',
@@ -28,15 +29,19 @@ const DEFAULT_CONTENT_MODE_STRIP = [
   '[class*="cookie" i]'
 ];
 
-const CONTENT_ROOT_SELECTORS = ['main', 'article', '[role="main"]', '#main', '#content', '.content'];
+const DEFAULT_CONTENT_MIN_TEXT_LENGTH = 140;
 
 const DEFAULT_OPTIONS: Required<
-  Pick<DefaultConverterOptions, 'mode' | 'addFrontMatter' | 'stripSelectors' | 'frontMatterFields'>
+  Pick<
+    DefaultConverterOptions,
+    'mode' | 'addFrontMatter' | 'stripSelectors' | 'frontMatterFields' | 'contentMinTextLength'
+  >
 > = {
   mode: 'verbatim',
   addFrontMatter: false,
   stripSelectors: [],
-  frontMatterFields: DEFAULT_FRONTMATTER_FIELDS
+  frontMatterFields: DEFAULT_FRONTMATTER_FIELDS,
+  contentMinTextLength: DEFAULT_CONTENT_MIN_TEXT_LENGTH
 };
 
 function normalizeMarkdown(markdown: string): string {
@@ -51,6 +56,34 @@ function getText(selector: string, document: Document): string | undefined {
 function getAttribute(selector: string, attribute: string, document: Document): string | undefined {
   const value = document.querySelector(selector)?.getAttribute(attribute)?.trim();
   return value || undefined;
+}
+
+function getFirstAttribute(
+  selectors: readonly [selector: string, attribute: string][],
+  document: Document
+): string | undefined {
+  for (const [selector, attribute] of selectors) {
+    const value = getAttribute(selector, attribute, document);
+    if (value) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function getDocumentLang(document: Document): string | undefined {
+  const rootLang = document.documentElement.getAttribute('lang')?.trim();
+  if (rootLang) {
+    return rootLang;
+  }
+
+  const contentLanguage = getAttribute('meta[http-equiv="content-language"][content]', 'content', document);
+  if (!contentLanguage) {
+    return undefined;
+  }
+
+  return contentLanguage.split(/[;,]/)[0]?.trim() || undefined;
 }
 
 function rewriteUrls(
@@ -119,36 +152,42 @@ function rewriteUrls(
   }
 }
 
-function pickContentRoot(document: Document): Element | null {
-  for (const selector of CONTENT_ROOT_SELECTORS) {
-    const element = document.querySelector(selector);
-    if (element) {
-      return element;
-    }
-  }
-
-  return document.body;
-}
-
 function gatherMetadata(
   document: Document,
   requestUrl: string,
   responseUrl?: string
 ): { metadata: ConversionMetadata; baseUrl?: string; canonicalUrl?: string } {
-  const urlFallback = responseUrl ?? requestUrl;
+  const normalizedRequestUrl = normalizeDocumentUrl(requestUrl) ?? requestUrl;
+  const normalizedResponseUrl = normalizeDocumentUrl(responseUrl);
+  const urlFallback = normalizedResponseUrl ?? normalizedRequestUrl;
   const baseHref = getAttribute('base[href]', 'href', document);
-  const canonicalHref = getAttribute('link[rel~="canonical"][href]', 'href', document);
+  const canonicalHref = getFirstAttribute(
+    [
+      ['link[rel~="canonical"][href]', 'href'],
+      ['meta[property="og:url"][content]', 'content'],
+      ['meta[name="twitter:url"][content]', 'content']
+    ],
+    document
+  );
 
   const baseUrl = resolveUrl(baseHref, urlFallback);
   const canonicalUrl = resolveUrl(canonicalHref, baseUrl ?? urlFallback);
+  const bestUrl = canonicalUrl ?? normalizedResponseUrl ?? normalizedRequestUrl;
 
   const metadata: ConversionMetadata = {
-    url: requestUrl
+    url: bestUrl
   };
 
-  const title = getText('title', document);
-  const description = getAttribute('meta[name="description"]', 'content', document);
-  const lang = document.documentElement.getAttribute('lang')?.trim();
+  const title =
+    getText('title', document) ??
+    getAttribute('meta[property="og:title"][content]', 'content', document) ??
+    getAttribute('meta[name="twitter:title"][content]', 'content', document) ??
+    getText('h1', document);
+  const description =
+    getAttribute('meta[name="description"]', 'content', document) ??
+    getAttribute('meta[property="og:description"][content]', 'content', document) ??
+    getAttribute('meta[name="twitter:description"][content]', 'content', document);
+  const lang = getDocumentLang(document);
 
   if (title) {
     metadata.title = title;
@@ -199,12 +238,17 @@ function renderMarkdown(html: string, markdownOptions?: Record<string, unknown>)
   return converter.translate(html);
 }
 
-function buildMarkdownHtml(document: Document, mode: DefaultConverterOptions['mode']): string {
+function buildMarkdownHtml(
+  document: Document,
+  mode: DefaultConverterOptions['mode'],
+  contentMinTextLength: number
+): string {
   if (mode !== 'content') {
     return document.body?.innerHTML ?? document.documentElement.innerHTML;
   }
 
-  const root = pickContentRoot(document);
+  const root = pickContentRoot(document, contentMinTextLength);
+  hardenContentTree(document, root);
   return root?.innerHTML ?? document.body?.innerHTML ?? document.documentElement.innerHTML;
 }
 
@@ -213,16 +257,23 @@ export class DefaultHtmlToMarkdownConverter implements HtmlToMarkdownConverter {
   readonly version = '0.1.0';
 
   private readonly options: Required<
-    Pick<DefaultConverterOptions, 'mode' | 'addFrontMatter' | 'stripSelectors' | 'frontMatterFields'>
+    Pick<
+      DefaultConverterOptions,
+      'mode' | 'addFrontMatter' | 'stripSelectors' | 'frontMatterFields' | 'contentMinTextLength'
+    >
   > &
-    Omit<DefaultConverterOptions, 'mode' | 'addFrontMatter' | 'stripSelectors' | 'frontMatterFields'>;
+    Omit<
+      DefaultConverterOptions,
+      'mode' | 'addFrontMatter' | 'stripSelectors' | 'frontMatterFields' | 'contentMinTextLength'
+    >;
 
   constructor(options: DefaultConverterOptions = {}) {
     this.options = {
       ...DEFAULT_OPTIONS,
       ...options,
       stripSelectors: options.stripSelectors ?? DEFAULT_OPTIONS.stripSelectors,
-      frontMatterFields: options.frontMatterFields ?? DEFAULT_FRONTMATTER_FIELDS
+      frontMatterFields: options.frontMatterFields ?? DEFAULT_FRONTMATTER_FIELDS,
+      contentMinTextLength: options.contentMinTextLength ?? DEFAULT_CONTENT_MIN_TEXT_LENGTH
     };
   }
 
@@ -251,7 +302,10 @@ export class DefaultHtmlToMarkdownConverter implements HtmlToMarkdownConverter {
       this.options.rewriteImage
     );
 
-    const markdownBody = renderMarkdown(buildMarkdownHtml(document, this.options.mode), this.options.markdownOptions);
+    const markdownBody = renderMarkdown(
+      buildMarkdownHtml(document, this.options.mode, this.options.contentMinTextLength),
+      this.options.markdownOptions
+    );
 
     if (!this.options.addFrontMatter) {
       return normalizeMarkdown(markdownBody);
