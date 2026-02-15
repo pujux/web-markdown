@@ -2,9 +2,21 @@
   "name": "@web-markdown/adapters-next",
   "version": "0.1.0",
   "type": "module",
-  "private": true,
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "scripts": {
-    "build": "echo \"M3 pending\"",
-    "typecheck": "echo \"M3 pending\""
+    "build": "tsup src/index.ts --dts --format esm,cjs",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@web-markdown/transform-fetch": "workspace:*"
   }
 }
