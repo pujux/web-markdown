@@ -19,7 +19,7 @@
   "dependencies": {
     "@web-markdown/core": "workspace:*",
     "linkedom": "^0.18.9",
-    "node-html-markdown": "^1.3.0",
+    "node-html-markdown": "^2.0.0",
     "yaml": "^2.7.0"
   }
 }

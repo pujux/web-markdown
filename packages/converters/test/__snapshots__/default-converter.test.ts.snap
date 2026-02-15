@@ -11,7 +11,7 @@ canonical: https://canonical.example.com/reference
 
 # Getting started
 
- Visit [setup](https://example.com/docs/setup) and[external docs](https://external.example.org/).
+Visit [setup](https://example.com/docs/setup) and [external docs](https://external.example.org/). 
 
 ![Hero image](https://example.com/docs/hero.png)
 
@@ -24,9 +24,9 @@ console.log('hi')
 exports[`createDefaultConverter > hardens content extraction for non-semantic pages 1`] = `
 "# Designing Better APIs
 
- Clear boundaries and explicit defaults reduce accidental complexity.
+Clear boundaries and explicit defaults reduce accidental complexity. 
 
- Build adapters as thin composition layers and keep shared logic reusable.
+Build adapters as thin composition layers and keep shared logic reusable. 
 
 - Define ownership
 - Preserve protocol semantics

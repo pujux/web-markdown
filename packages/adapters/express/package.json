@@ -18,10 +18,10 @@
   },
   "dependencies": {
     "@web-markdown/transform-fetch": "workspace:*",
-    "express": "^4.21.2"
+    "express": "^5.2.1"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
+    "@types/express": "^5.0.6",
     "@types/supertest": "^6.0.3",
     "supertest": "^7.1.1"
   }
