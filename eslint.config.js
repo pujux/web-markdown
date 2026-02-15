@@ -9,6 +9,15 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    files: ['**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2022
+      }
+    }
+  },
+  {
     files: ['**/*.ts'],
     languageOptions: {
       globals: {

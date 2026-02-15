@@ -1,0 +1,28 @@
+{
+  "name": "@web-markdown/adapters-express",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --dts --format esm,cjs",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@web-markdown/transform-fetch": "workspace:*",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/supertest": "^6.0.3",
+    "supertest": "^7.1.1"
+  }
+}
