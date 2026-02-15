@@ -1,7 +1,7 @@
-import { createAppMarkdownEndpoint } from '@web-markdown/adapters-next/app';
+import { handleInternalMarkdownRequest } from '@web-markdown/adapters-next';
 import { createDefaultConverter } from '@web-markdown/converters';
 
-const handler = createAppMarkdownEndpoint({
+const options = {
   converter: createDefaultConverter({
     mode: 'content',
     addFrontMatter: true
@@ -9,7 +9,11 @@ const handler = createAppMarkdownEndpoint({
   include: ['/docs/**'],
   exclude: ['/docs/private'],
   debugHeaders: true
-});
+};
+
+async function handler(request: Request): Promise<Response> {
+  return handleInternalMarkdownRequest(request, options);
+}
 
 export const GET = handler;
 export const HEAD = handler;

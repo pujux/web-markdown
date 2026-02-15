@@ -13,7 +13,7 @@
 - `@web-markdown/adapters/express`
   - Thin middleware wrapper around core + converter + transform flow.
 - `@web-markdown/adapters/next`
-  - Thin Next adapter using Fetch-style primitives where possible.
+  - Next integration primitives (routing decisions + internal endpoint transform) with manual app wiring.
 - `playground/`
   - Minimal runnable demos for Express and Next.
 
@@ -59,7 +59,7 @@
 ## Milestones
 - M1: core + fetch transform + default converter + tests.
 - M2: express adapter + tests.
-- M3: next adapter + playground.
+- M3: next integration primitives + manual playground wiring.
 - M4: content-only mode hardening + canonical URL rewrite improvements + front matter tuning.
 
 ## Rollback Strategy

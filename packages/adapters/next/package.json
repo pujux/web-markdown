@@ -11,29 +11,24 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./middleware": {
-      "types": "./dist/middleware.d.ts",
-      "import": "./dist/middleware.js",
-      "require": "./dist/middleware.cjs"
-    },
-    "./app": {
-      "types": "./dist/app.d.ts",
-      "import": "./dist/app.js",
-      "require": "./dist/app.cjs"
-    },
-    "./pages": {
-      "types": "./dist/pages.d.ts",
-      "import": "./dist/pages.js",
-      "require": "./dist/pages.cjs"
+    "./internal": {
+      "types": "./dist/internal.d.ts",
+      "import": "./dist/internal.js",
+      "require": "./dist/internal.cjs"
     },
     "./route-handler": {
       "types": "./dist/route-handler.d.ts",
       "import": "./dist/route-handler.js",
       "require": "./dist/route-handler.cjs"
+    },
+    "./shared": {
+      "types": "./dist/shared.d.ts",
+      "import": "./dist/shared.js",
+      "require": "./dist/shared.cjs"
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts src/middleware.ts src/app.ts src/pages.ts src/route-handler.ts --dts --format esm,cjs",
+    "build": "tsup src/index.ts src/internal.ts src/route-handler.ts src/shared.ts --dts --format esm,cjs",
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "peerDependencies": {

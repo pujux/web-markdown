@@ -102,28 +102,46 @@ Adapter notes:
 - Middleware captures buffered responses and delegates negotiation/transform rules to `transformFetchResponse`.
 - If a handler streams/flushed headers early, middleware falls back to normal pass-through behavior.
 
-## Next adapter (`@web-markdown/adapters-next`)
+## Next integration (`@web-markdown/adapters-next`)
 
-Use middleware + an internal endpoint. This enables markdown across page URLs and avoids Next API routes.
+This package ships integration primitives, not auto-generated Next wiring.
 
-### App Router setup
+What it provides:
+- Routing helpers: `normalizeRoutingOptions`, `shouldRewriteRequestToMarkdown`, `buildInternalRewriteUrl`
+- Internal endpoint transformer: `handleInternalMarkdownRequest`
+- Route wrapper for fetch-style handlers: `withNextMarkdownRouteHandler`
+
+### App Router manual wiring
 
 ```ts
-// middleware.ts (or proxy.ts on Next 16+)
-import { createNextMarkdownMiddleware } from '@web-markdown/adapters-next/middleware';
+// proxy.ts (Next 16+) or middleware.ts
+import { NextResponse } from 'next/server';
+import {
+  buildInternalRewriteUrl,
+  normalizeRoutingOptions,
+  shouldRewriteRequestToMarkdown
+} from '@web-markdown/adapters-next';
 
-export default createNextMarkdownMiddleware({
+const routing = normalizeRoutingOptions({
   include: ['/docs/**'],
   exclude: ['/docs/private']
 });
+
+export default function proxy(request: Request): Response {
+  if (!shouldRewriteRequestToMarkdown(request, routing)) {
+    return NextResponse.next();
+  }
+
+  return NextResponse.rewrite(buildInternalRewriteUrl(request.url, routing));
+}
 ```
 
 ```ts
 // app/__web_markdown__/route.ts
-import { createAppMarkdownEndpoint } from '@web-markdown/adapters-next/app';
+import { handleInternalMarkdownRequest } from '@web-markdown/adapters-next';
 import { createDefaultConverter } from '@web-markdown/converters';
 
-const handler = createAppMarkdownEndpoint({
+const options = {
   converter: createDefaultConverter({
     mode: 'content',
     addFrontMatter: true
@@ -131,49 +149,64 @@ const handler = createAppMarkdownEndpoint({
   include: ['/docs/**'],
   exclude: ['/docs/private'],
   debugHeaders: true
-});
+};
 
-export const GET = handler;
-export const HEAD = handler;
+export async function GET(request: Request): Promise<Response> {
+  return handleInternalMarkdownRequest(request, options);
+}
+
+export async function HEAD(request: Request): Promise<Response> {
+  return handleInternalMarkdownRequest(request, options);
+}
 ```
 
-### Pages Router setup
+### Pages Router manual wiring
 
-```ts
-// middleware.ts (or proxy.ts on Next 16+)
-import { createNextMarkdownMiddleware } from '@web-markdown/adapters-next/middleware';
+Use the same `proxy.ts`/`middleware.ts` pattern, and serve the internal endpoint from a page with `getServerSideProps` (not an API route):
 
-export default createNextMarkdownMiddleware({
+```tsx
+// pages/__web_markdown__.tsx
+import type { GetServerSideProps, NextPage } from 'next';
+import { handleInternalMarkdownRequest } from '@web-markdown/adapters-next';
+import { createDefaultConverter } from '@web-markdown/converters';
+
+const MarkdownPage: NextPage = () => null;
+
+const options = {
+  converter: createDefaultConverter({ mode: 'content', addFrontMatter: true }),
   include: ['/docs/**'],
   exclude: ['/docs/private']
-});
+};
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const host = context.req.headers.host ?? 'localhost:3000';
+  const protocol = context.req.headers['x-forwarded-proto'] ?? 'http';
+  const requestUrl = new URL(context.resolvedUrl ?? context.req.url ?? '/', `${protocol}://${host}`);
+
+  const request = new Request(requestUrl, {
+    method: context.req.method ?? 'GET',
+    headers: context.req.headers as HeadersInit
+  });
+
+  const response = await handleInternalMarkdownRequest(request, options);
+  context.res.statusCode = response.status;
+
+  for (const [name, value] of response.headers.entries()) {
+    context.res.setHeader(name, value);
+  }
+
+  context.res.end(Buffer.from(await response.arrayBuffer()));
+  return { props: {} };
+};
+
+export default MarkdownPage;
 ```
 
-```ts
-// pages/__web_markdown__.tsx
-import { createPagesMarkdownEndpoint } from '@web-markdown/adapters-next/pages';
-import { createDefaultConverter } from '@web-markdown/converters';
-
-const endpoint = createPagesMarkdownEndpoint({
-  converter: createDefaultConverter({
-    mode: 'content',
-    addFrontMatter: true
-  }),
-  include: ['/docs/**'],
-  exclude: ['/docs/private'],
-  debugHeaders: true
-});
-
-export const getServerSideProps = endpoint.getServerSideProps;
-export default endpoint.MarkdownPage;
-```
-
-Next adapter notes:
-- Middleware rewrites markdown-acceptable page requests to an internal endpoint.
-- Internal endpoint fetches the original page as HTML, then applies shared `transformFetchResponse`.
-- Default exclusions always skip `/api`, `/_next`, static assets, and the internal path.
-- Include/exclude controls let you scope markdown transformation by URL path patterns.
-- Route handler wrapper still exists for direct use: `@web-markdown/adapters-next/route-handler`.
+Next integration notes:
+- Markdown negotiation stays explicit (`Accept: text/markdown` only).
+- Default exclusions skip `/api`, `/_next`, static assets, and the internal endpoint path.
+- Include/exclude controls are path-based and shared across proxy + endpoint code.
+- Internal endpoint fetches source HTML with a bypass header to avoid rewrite loops.
 
 ## Content mode behavior
 - Removes common boilerplate selectors (navigation/footer/cookie and similar chrome).
@@ -228,5 +261,5 @@ pnpm build
 ## Milestone status
 - M1 complete: core negotiation, fetch transformer, default converter, semantics + snapshot tests.
 - M2 complete: Express adapter and integration tests.
-- M3 complete: Next adapter + playground demo.
+- M3 complete: Next integration primitives + manual playground wiring.
 - M4 complete: content extraction hardening + canonicalization/front-matter refinements.

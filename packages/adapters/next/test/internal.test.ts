@@ -2,16 +2,16 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { HtmlToMarkdownConverter } from '@web-markdown/core';
 
-import { createAppMarkdownEndpoint } from '../src/app';
+import { handleInternalMarkdownRequest } from '../src/internal';
 
 const converter: HtmlToMarkdownConverter = {
-  name: 'next-app-test',
+  name: 'next-internal-test',
   version: '1.0.0',
   convert: async (html) => `# Markdown\n\n${html.replace(/<[^>]*>/g, '').trim()}`
 };
 
-describe('createAppMarkdownEndpoint', () => {
-  it('fetches html source and returns markdown', async () => {
+describe('handleInternalMarkdownRequest', () => {
+  it('fetches the source URL and transforms HTML to markdown', async () => {
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const request = input instanceof Request ? input : new Request(String(input));
       expect(request.url).toBe('https://example.com/docs');
@@ -28,19 +28,18 @@ describe('createAppMarkdownEndpoint', () => {
       });
     });
 
-    const handler = createAppMarkdownEndpoint({
-      converter,
-      fetchImpl: fetchImpl as unknown as typeof fetch,
-      debugHeaders: true
-    });
-
-    const request = new Request('https://example.com/__web_markdown__?__wm_source=%2Fdocs', {
-      headers: {
-        Accept: 'text/markdown'
+    const response = await handleInternalMarkdownRequest(
+      new Request('https://example.com/__web_markdown__?__wm_source=%2Fdocs', {
+        headers: {
+          Accept: 'text/markdown'
+        }
+      }),
+      {
+        converter,
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        debugHeaders: true
       }
-    });
-
-    const response = await handler(request);
+    );
 
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(response.status).toBe(200);
@@ -52,31 +51,40 @@ describe('createAppMarkdownEndpoint', () => {
     expect(await response.text()).toContain('# Markdown');
   });
 
-  it('rejects invalid or excluded source requests', async () => {
+  it('rejects requests without an internal source path', async () => {
+    const response = await handleInternalMarkdownRequest(
+      new Request('https://example.com/__web_markdown__', {
+        headers: {
+          Accept: 'text/markdown'
+        }
+      }),
+      {
+        converter
+      }
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain('Missing or invalid markdown source URL');
+  });
+
+  it('rejects excluded source paths', async () => {
     const fetchImpl = vi.fn();
 
-    const handler = createAppMarkdownEndpoint({
-      converter,
-      fetchImpl,
-      exclude: ['/docs/private']
-    });
-
-    const missing = await handler(new Request('https://example.com/__web_markdown__', {
-      headers: {
-        Accept: 'text/markdown'
-      }
-    }));
-
-    const excluded = await handler(
+    const response = await handleInternalMarkdownRequest(
       new Request('https://example.com/__web_markdown__?__wm_source=%2Fdocs%2Fprivate', {
         headers: {
           Accept: 'text/markdown'
         }
-      })
+      }),
+      {
+        converter,
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        include: ['/docs/**'],
+        exclude: ['/docs/private']
+      }
     );
 
-    expect(missing.status).toBe(400);
-    expect(excluded.status).toBe(404);
+    expect(response.status).toBe(404);
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 });
