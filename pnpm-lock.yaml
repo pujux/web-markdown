@@ -57,6 +57,10 @@ importers:
       '@web-markdown/transform-fetch':
         specifier: workspace:*
         version: link:../../transform-fetch
+    devDependencies:
+      next:
+        specifier: ^16.1.6
+        version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
 
   packages/converters:
     dependencies:

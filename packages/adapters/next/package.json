@@ -10,13 +10,39 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./middleware": {
+      "types": "./dist/middleware.d.ts",
+      "import": "./dist/middleware.js",
+      "require": "./dist/middleware.cjs"
+    },
+    "./app": {
+      "types": "./dist/app.d.ts",
+      "import": "./dist/app.js",
+      "require": "./dist/app.cjs"
+    },
+    "./pages": {
+      "types": "./dist/pages.d.ts",
+      "import": "./dist/pages.js",
+      "require": "./dist/pages.cjs"
+    },
+    "./route-handler": {
+      "types": "./dist/route-handler.d.ts",
+      "import": "./dist/route-handler.js",
+      "require": "./dist/route-handler.cjs"
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --dts --format esm,cjs",
+    "build": "tsup src/index.ts src/middleware.ts src/app.ts src/pages.ts src/route-handler.ts --dts --format esm,cjs",
     "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "next": ">=14.2.0"
   },
   "dependencies": {
     "@web-markdown/transform-fetch": "workspace:*"
+  },
+  "devDependencies": {
+    "next": "^16.1.6"
   }
 }

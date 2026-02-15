@@ -104,28 +104,76 @@ Adapter notes:
 
 ## Next adapter (`@web-markdown/adapters-next`)
 
+Use middleware + an internal endpoint. This enables markdown across page URLs and avoids Next API routes.
+
+### App Router setup
+
 ```ts
-import { withNextMarkdownRouteHandler } from '@web-markdown/adapters-next';
+// middleware.ts (or proxy.ts on Next 16+)
+import { createNextMarkdownMiddleware } from '@web-markdown/adapters-next/middleware';
+
+export default createNextMarkdownMiddleware({
+  include: ['/docs/**'],
+  exclude: ['/docs/private']
+});
+```
+
+```ts
+// app/__web_markdown__/route.ts
+import { createAppMarkdownEndpoint } from '@web-markdown/adapters-next/app';
 import { createDefaultConverter } from '@web-markdown/converters';
 
-const htmlHandler = async (request: Request): Promise<Response> => {
-  return new Response('<html><body><main><h1>Hello</h1></main></body></html>', {
-    headers: { 'Content-Type': 'text/html; charset=utf-8' }
-  });
-};
-
-export const GET = withNextMarkdownRouteHandler(htmlHandler, {
+const handler = createAppMarkdownEndpoint({
   converter: createDefaultConverter({
     mode: 'content',
     addFrontMatter: true
   }),
+  include: ['/docs/**'],
+  exclude: ['/docs/private'],
   debugHeaders: true
+});
+
+export const GET = handler;
+export const HEAD = handler;
+```
+
+### Pages Router setup
+
+```ts
+// middleware.ts (or proxy.ts on Next 16+)
+import { createNextMarkdownMiddleware } from '@web-markdown/adapters-next/middleware';
+
+export default createNextMarkdownMiddleware({
+  include: ['/docs/**'],
+  exclude: ['/docs/private']
 });
 ```
 
-Adapter notes:
-- Uses fetch-native request/response wrappers so route handlers stay framework-thin.
-- Shares all negotiation, size limits, and header semantics with `transformFetchResponse`.
+```ts
+// pages/__web_markdown__.tsx
+import { createPagesMarkdownEndpoint } from '@web-markdown/adapters-next/pages';
+import { createDefaultConverter } from '@web-markdown/converters';
+
+const endpoint = createPagesMarkdownEndpoint({
+  converter: createDefaultConverter({
+    mode: 'content',
+    addFrontMatter: true
+  }),
+  include: ['/docs/**'],
+  exclude: ['/docs/private'],
+  debugHeaders: true
+});
+
+export const getServerSideProps = endpoint.getServerSideProps;
+export default endpoint.MarkdownPage;
+```
+
+Next adapter notes:
+- Middleware rewrites markdown-acceptable page requests to an internal endpoint.
+- Internal endpoint fetches the original page as HTML, then applies shared `transformFetchResponse`.
+- Default exclusions always skip `/api`, `/_next`, static assets, and the internal path.
+- Include/exclude controls let you scope markdown transformation by URL path patterns.
+- Route handler wrapper still exists for direct use: `@web-markdown/adapters-next/route-handler`.
 
 ## Content mode behavior
 - Removes common boilerplate selectors (navigation/footer/cookie and similar chrome).
