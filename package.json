@@ -1,0 +1,25 @@
+{
+  "name": "web-markdown",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-agnostic HTML to Markdown content negotiation",
+  "packageManager": "pnpm@10.8.1",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "@types/node": "^22.13.10",
+    "eslint": "^9.20.1",
+    "globals": "^16.0.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.0",
+    "vitest": "^3.0.8"
+  }
+}

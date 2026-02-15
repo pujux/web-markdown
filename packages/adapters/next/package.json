@@ -1,0 +1,10 @@
+{
+  "name": "@web-markdown/adapters-next",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "echo \"M3 pending\"",
+    "typecheck": "echo \"M3 pending\""
+  }
+}

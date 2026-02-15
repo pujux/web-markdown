@@ -1,0 +1,25 @@
+{
+  "name": "@web-markdown/converters",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --dts --format esm,cjs",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@web-markdown/core": "workspace:*",
+    "linkedom": "^0.18.9",
+    "node-html-markdown": "^1.3.0",
+    "yaml": "^2.7.0"
+  }
+}

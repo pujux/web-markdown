@@ -1,0 +1,32 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`createDefaultConverter > converts html to stable markdown with front matter and absolute URLs 1`] = `
+"---
+title: Demo page
+url: https://example.com/guide
+lang: en
+description: Demonstration document
+canonical: https://canonical.example.com/reference
+---
+
+# Getting started
+
+ Visit [setup](https://example.com/docs/setup) and[external docs](https://external.example.org/).
+
+![Hero image](https://example.com/docs/hero.png)
+
+\`\`\`ts
+console.log('hi')
+\`\`\`
+"
+`;
+
+exports[`createDefaultConverter > supports content mode boilerplate stripping 1`] = `
+"# Article
+
+Body text
+
+- One
+- Two
+"
+`;

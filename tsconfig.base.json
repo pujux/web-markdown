@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@web-markdown/core": ["packages/core/src/index.ts"],
+      "@web-markdown/converters": ["packages/converters/src/index.ts"],
+      "@web-markdown/transform-fetch": ["packages/transform-fetch/src/index.ts"],
+      "@web-markdown/adapters-express": ["packages/adapters/express/src/index.ts"],
+      "@web-markdown/adapters-next": ["packages/adapters/next/src/index.ts"]
+    },
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+  }
+}
