@@ -14,8 +14,8 @@ Framework-agnostic HTML to Markdown content negotiation for web responses.
 - `packages/transform-fetch` -> `@web-markdown/transform-fetch`
 - `packages/converters` -> `@web-markdown/converters`
 - `packages/adapters/express` -> `@web-markdown/adapters-express`
-- `packages/adapters/next` -> scaffold for M3
-- `playground/` -> Express demo + Next scaffold
+- `packages/adapters/next` -> `@web-markdown/adapters-next`
+- `playground/` -> Express + Next demos
 
 ## Milestone 1 APIs
 
@@ -101,6 +101,31 @@ Adapter notes:
 - Middleware captures buffered responses and delegates negotiation/transform rules to `transformFetchResponse`.
 - If a handler streams/flushed headers early, middleware falls back to normal pass-through behavior.
 
+## Next adapter (`@web-markdown/adapters-next`)
+
+```ts
+import { withNextMarkdownRouteHandler } from '@web-markdown/adapters-next';
+import { createDefaultConverter } from '@web-markdown/converters';
+
+const htmlHandler = async (request: Request): Promise<Response> => {
+  return new Response('<html><body><main><h1>Hello</h1></main></body></html>', {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+  });
+};
+
+export const GET = withNextMarkdownRouteHandler(htmlHandler, {
+  converter: createDefaultConverter({
+    mode: 'content',
+    addFrontMatter: true
+  }),
+  debugHeaders: true
+});
+```
+
+Adapter notes:
+- Uses fetch-native request/response wrappers so route handlers stay framework-thin.
+- Shares all negotiation, size limits, and header semantics with `transformFetchResponse`.
+
 ## HTTP semantics and caching notes
 - No explicit `text/markdown` in `Accept`: pass through original response.
 - Redirects (`3xx`): never transformed.
@@ -138,9 +163,10 @@ pnpm build
 
 ## Playground
 - Express: `pnpm --filter @web-markdown/playground-express start`
+- Next: `pnpm --filter @web-markdown/playground-next dev`
 
 ## Milestone status
 - M1 complete: core negotiation, fetch transformer, default converter, semantics + snapshot tests.
 - M2 complete: Express adapter and integration tests.
-- M3 planned: Next adapter + playground demos.
+- M3 complete: Next adapter + playground demo.
 - M4 planned: content extraction hardening + canonicalization refinements.
