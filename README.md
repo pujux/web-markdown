@@ -119,6 +119,7 @@ This package ships integration primitives, not auto-generated Next wiring.
 What it provides:
 
 - Routing helpers: `normalizeRoutingOptions`, `shouldRewriteRequestToMarkdown`, `buildInternalRewriteUrl`
+- Endpoint rewrite helper: `shouldRewriteRequestToMarkdownEndpoint` (routes eligible page requests through internal endpoint so non-markdown responses still get `Vary: Accept`)
 - Internal endpoint transformer: `handleInternalMarkdownRequest`
 - Route wrapper for fetch-style handlers: `withNextMarkdownRouteHandler`
 
@@ -127,7 +128,7 @@ What it provides:
 ```ts
 // proxy.ts (Next 16+) or middleware.ts
 import { NextResponse } from "next/server";
-import { buildInternalRewriteUrl, normalizeRoutingOptions, shouldRewriteRequestToMarkdown } from "@web-markdown/adapters-next";
+import { buildInternalRewriteUrl, normalizeRoutingOptions, shouldRewriteRequestToMarkdownEndpoint } from "@web-markdown/adapters-next";
 
 const routing = normalizeRoutingOptions({
   include: ["/docs/**"],
@@ -135,7 +136,7 @@ const routing = normalizeRoutingOptions({
 });
 
 export default function proxy(request: Request): Response {
-  if (!shouldRewriteRequestToMarkdown(request, routing)) {
+  if (!shouldRewriteRequestToMarkdownEndpoint(request, routing)) {
     return NextResponse.next();
   }
 
@@ -214,6 +215,7 @@ Next integration notes:
 - Markdown negotiation stays explicit (`Accept: text/markdown` only).
 - Default exclusions skip `/api`, `/_next`, static assets, and the internal endpoint path.
 - Include/exclude controls are path-based and shared across proxy + endpoint code.
+- `shouldRewriteRequestToMarkdownEndpoint` rewrites eligible page requests to the internal endpoint so HTML passthrough responses still include `Vary: Accept`.
 - Internal endpoint access is intentionally internal-only; direct calls can return `404`.
 - Internal endpoint fetches source HTML with a bypass header to avoid rewrite loops.
 

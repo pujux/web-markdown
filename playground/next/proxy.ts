@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { buildInternalRewriteUrl, normalizeRoutingOptions, shouldRewriteRequestToMarkdown } from "@web-markdown/adapters-next";
+import { buildInternalRewriteUrl, normalizeRoutingOptions, shouldRewriteRequestToMarkdownEndpoint } from "@web-markdown/adapters-next";
 
 const routing = normalizeRoutingOptions({
   include: ["/**"],
@@ -8,7 +8,7 @@ const routing = normalizeRoutingOptions({
 });
 
 export default function proxy(request: Request): Response {
-  if (!shouldRewriteRequestToMarkdown(request, routing)) {
+  if (!shouldRewriteRequestToMarkdownEndpoint(request, routing)) {
     return NextResponse.next();
   }
 

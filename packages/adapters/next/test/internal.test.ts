@@ -67,8 +67,19 @@ describe("handleInternalMarkdownRequest", () => {
     expect(await response.text()).toContain("Not Found");
   });
 
-  it("rejects excluded rewritten source paths", async () => {
-    const fetchImpl = vi.fn();
+  it("passes through excluded rewritten source paths with vary safety", async () => {
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const request = input instanceof Request ? input : new Request(String(input));
+      expect(request.url).toBe("https://example.com/docs/private");
+      expect(request.headers.get("x-web-markdown-bypass")).toBe("1");
+
+      return new Response("<html><body><main><h1>Private</h1></main></body></html>", {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+        },
+      });
+    });
 
     const response = await handleInternalMarkdownRequest(
       new Request("https://example.com/docs/private", {
@@ -81,10 +92,15 @@ describe("handleInternalMarkdownRequest", () => {
         fetchImpl: fetchImpl as unknown as typeof fetch,
         include: ["/docs/**"],
         exclude: ["/docs/private"],
+        debugHeaders: true,
       },
     );
 
-    expect(response.status).toBe(404);
-    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(response.headers.get("content-type")).toContain("text/html");
+    expect(response.headers.get("vary")).toContain("Accept");
+    expect(response.headers.get("x-markdown-transformed")).toBe("0");
+    expect(await response.text()).toContain("<main><h1>Private</h1></main>");
   });
 });

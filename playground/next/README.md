@@ -21,5 +21,5 @@ Expected:
 
 Integration model shown here:
 
-- `proxy.ts` manually decides rewrite with `normalizeRoutingOptions`, `shouldRewriteRequestToMarkdown`, and `buildInternalRewriteUrl`.
+- `proxy.ts` manually decides rewrite with `normalizeRoutingOptions`, `shouldRewriteRequestToMarkdownEndpoint`, and `buildInternalRewriteUrl`.
 - `app/api/web-markdown/route.ts` manually calls `handleInternalMarkdownRequest`.

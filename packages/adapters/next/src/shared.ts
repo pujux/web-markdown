@@ -1,4 +1,4 @@
-import { acceptsMarkdown } from "@web-markdown/core";
+import { acceptsMarkdown, mergeVary } from "@web-markdown/core";
 
 export type NextPathPattern = string | RegExp | ((pathname: string) => boolean);
 
@@ -117,7 +117,7 @@ export function normalizeRoutingOptions(options: NextMarkdownRoutingOptions = {}
   };
 }
 
-export function shouldServeMarkdownForPath(pathname: string, options: NormalizedNextMarkdownRoutingOptions): boolean {
+export function shouldRoutePathToMarkdownEndpoint(pathname: string, options: NormalizedNextMarkdownRoutingOptions): boolean {
   const normalizedPath = normalizePathname(pathname);
 
   if (pathStartsWithPrefix(normalizedPath, options.internalPath)) {
@@ -125,6 +125,16 @@ export function shouldServeMarkdownForPath(pathname: string, options: Normalized
   }
 
   if (isDefaultExcluded(normalizedPath)) {
+    return false;
+  }
+
+  return true;
+}
+
+export function shouldServeMarkdownForPath(pathname: string, options: NormalizedNextMarkdownRoutingOptions): boolean {
+  const normalizedPath = normalizePathname(pathname);
+
+  if (!shouldRoutePathToMarkdownEndpoint(normalizedPath, options)) {
     return false;
   }
 
@@ -139,7 +149,7 @@ export function shouldServeMarkdownForPath(pathname: string, options: Normalized
   return true;
 }
 
-export function shouldRewriteRequestToMarkdown(
+function shouldConsiderRequestForRewrite(
   request: Pick<Request, "url" | "headers" | "method">,
   options: NormalizedNextMarkdownRoutingOptions,
 ): boolean {
@@ -153,6 +163,17 @@ export function shouldRewriteRequestToMarkdown(
     return false;
   }
 
+  return true;
+}
+
+export function shouldRewriteRequestToMarkdown(
+  request: Pick<Request, "url" | "headers" | "method">,
+  options: NormalizedNextMarkdownRoutingOptions,
+): boolean {
+  if (!shouldConsiderRequestForRewrite(request, options)) {
+    return false;
+  }
+
   if (!acceptsMarkdown(request.headers)) {
     return false;
   }
@@ -161,9 +182,26 @@ export function shouldRewriteRequestToMarkdown(
   return shouldServeMarkdownForPath(url.pathname, options);
 }
 
+export function shouldRewriteRequestToMarkdownEndpoint(
+  request: Pick<Request, "url" | "headers" | "method">,
+  options: NormalizedNextMarkdownRoutingOptions,
+): boolean {
+  if (!shouldConsiderRequestForRewrite(request, options)) {
+    return false;
+  }
+
+  const url = new URL(request.url);
+  return shouldRoutePathToMarkdownEndpoint(url.pathname, options);
+}
+
 export function buildInternalRewriteUrl(requestUrl: string, options: NormalizedNextMarkdownRoutingOptions): URL {
   const original = new URL(requestUrl);
   const internal = new URL(options.internalPath, original.origin);
   internal.searchParams.set(options.sourceQueryParam, `${original.pathname}${original.search}`);
   return internal;
+}
+
+export function applyMarkdownVary(response: Response): Response {
+  response.headers.set("vary", mergeVary(response.headers.get("vary"), "Accept"));
+  return response;
 }

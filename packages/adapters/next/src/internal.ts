@@ -1,6 +1,6 @@
 import { transformFetchResponse, type TransformFetchResponseOptions } from "@web-markdown/transform-fetch";
 
-import { normalizeRoutingOptions, shouldServeMarkdownForPath, type NextMarkdownRoutingOptions } from "./shared";
+import { normalizeRoutingOptions, shouldRoutePathToMarkdownEndpoint, shouldServeMarkdownForPath, type NextMarkdownRoutingOptions } from "./shared";
 
 export interface NextMarkdownEndpointOptions extends NextMarkdownRoutingOptions, TransformFetchResponseOptions {
   fetchImpl?: typeof fetch;
@@ -47,11 +47,20 @@ function prepareUpstreamHeaders(incoming: Headers, bypassHeaderName: string, byp
   return headers;
 }
 
+function withHtmlOnlyAccept(request: Request): Request {
+  const headers = new Headers(request.headers);
+  headers.set("accept", "text/html,application/xhtml+xml;q=0.9,*/*;q=0.1");
+  return new Request(request.url, {
+    method: request.method,
+    headers,
+  });
+}
+
 export async function handleInternalMarkdownRequest(request: Request, options: NextMarkdownEndpointOptions): Promise<Response> {
   const routing = normalizeRoutingOptions(options);
   const requestUrl = new URL(request.url);
 
-  if (!shouldServeMarkdownForPath(requestUrl.pathname, routing)) {
+  if (!shouldRoutePathToMarkdownEndpoint(requestUrl.pathname, routing)) {
     return notFound();
   }
 
@@ -73,6 +82,10 @@ export async function handleInternalMarkdownRequest(request: Request, options: N
     method: request.method,
     headers: request.headers,
   });
+
+  if (!shouldServeMarkdownForPath(requestUrl.pathname, routing)) {
+    return transformFetchResponse(withHtmlOnlyAccept(markdownRequest), upstreamResponse, toTransformOptions(options));
+  }
 
   return transformFetchResponse(markdownRequest, upstreamResponse, toTransformOptions(options));
 }
