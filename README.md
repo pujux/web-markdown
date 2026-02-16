@@ -3,6 +3,7 @@
 Framework-agnostic HTML to Markdown content negotiation for web responses.
 
 ## What it does
+
 - Keeps normal HTML behavior for regular requests.
 - Transforms only when `Accept` explicitly includes `text/markdown` with `q > 0`.
 - Adds/merges `Vary: Accept` on transformed and pass-through responses.
@@ -10,6 +11,7 @@ Framework-agnostic HTML to Markdown content negotiation for web responses.
 - Preserves response status and cache headers.
 
 ## Workspace layout
+
 - `packages/core` -> `@web-markdown/core`
 - `packages/transform-fetch` -> `@web-markdown/transform-fetch`
 - `packages/converters` -> `@web-markdown/converters`
@@ -20,27 +22,30 @@ Framework-agnostic HTML to Markdown content negotiation for web responses.
 ## Milestone 1 APIs
 
 ### `@web-markdown/core`
-```ts
-import { acceptsMarkdown, mergeVary } from '@web-markdown/core';
 
-acceptsMarkdown(new Headers({ Accept: 'text/markdown;q=0.9' })); // true
-mergeVary('Accept-Encoding', 'Accept'); // "Accept-Encoding, Accept"
+```ts
+import { acceptsMarkdown, mergeVary } from "@web-markdown/core";
+
+acceptsMarkdown(new Headers({ Accept: "text/markdown;q=0.9" })); // true
+mergeVary("Accept-Encoding", "Accept"); // "Accept-Encoding, Accept"
 ```
 
 ### `@web-markdown/converters`
+
 ```ts
-import { createDefaultConverter } from '@web-markdown/converters';
+import { createDefaultConverter } from "@web-markdown/converters";
 
 const converter = createDefaultConverter({
-  mode: 'content',
+  mode: "content",
   addFrontMatter: true,
-  stripSelectors: ['.promo'],
+  stripSelectors: [".promo"],
   rewriteLink: (url) => url,
-  rewriteImage: (url) => url
+  rewriteImage: (url) => url,
 });
 ```
 
 Supported converter options:
+
 - `mode: 'verbatim' | 'content'`
 - `addFrontMatter: boolean`
 - `stripSelectors: string[]`
@@ -50,13 +55,14 @@ Supported converter options:
 - `frontMatterFields` (defaults: `title`, `url`, `lang`, `description`, `canonical`)
 
 ### `@web-markdown/transform-fetch`
+
 ```ts
-import { transformFetchResponse } from '@web-markdown/transform-fetch';
-import { createDefaultConverter } from '@web-markdown/converters';
+import { transformFetchResponse } from "@web-markdown/transform-fetch";
+import { createDefaultConverter } from "@web-markdown/converters";
 
 const converter = createDefaultConverter({
-  mode: 'content',
-  addFrontMatter: true
+  mode: "content",
+  addFrontMatter: true,
 });
 
 export async function handle(request: Request): Promise<Response> {
@@ -65,12 +71,12 @@ export async function handle(request: Request): Promise<Response> {
   return transformFetchResponse(request, upstream, {
     converter,
     maxHtmlBytes: 3 * 1024 * 1024,
-    oversizeBehavior: 'passthrough', // or 'not-acceptable'
+    oversizeBehavior: "passthrough", // or 'not-acceptable'
     debugHeaders: false,
     onObservation: (event) => {
       // event: transformed, reason, durationMs, htmlBytes, markdownBytes
       console.log(event);
-    }
+    },
   });
 }
 ```
@@ -78,28 +84,32 @@ export async function handle(request: Request): Promise<Response> {
 ## Express adapter (`@web-markdown/adapters-express`)
 
 ```ts
-import express from 'express';
+import express from "express";
 
-import { createExpressMarkdownMiddleware } from '@web-markdown/adapters-express';
-import { createDefaultConverter } from '@web-markdown/converters';
+import { createExpressMarkdownMiddleware } from "@web-markdown/adapters-express";
+import { createDefaultConverter } from "@web-markdown/converters";
 
 const app = express();
 
 app.use(
   createExpressMarkdownMiddleware({
     converter: createDefaultConverter({
-      mode: 'content',
-      addFrontMatter: true
+      mode: "content",
+      addFrontMatter: true,
     }),
+    include: ["/**"],
+    exclude: ["/not-markdown"],
     maxHtmlBytes: 3 * 1024 * 1024,
-    oversizeBehavior: 'passthrough',
-    debugHeaders: true
-  })
+    oversizeBehavior: "passthrough",
+    debugHeaders: true,
+  }),
 );
 ```
 
 Adapter notes:
+
 - Middleware captures buffered responses and delegates negotiation/transform rules to `transformFetchResponse`.
+- Optional `include` / `exclude` path filters allow route-level transform scoping.
 - If a handler streams/flushed headers early, middleware falls back to normal pass-through behavior.
 
 ## Next integration (`@web-markdown/adapters-next`)
@@ -107,6 +117,7 @@ Adapter notes:
 This package ships integration primitives, not auto-generated Next wiring.
 
 What it provides:
+
 - Routing helpers: `normalizeRoutingOptions`, `shouldRewriteRequestToMarkdown`, `buildInternalRewriteUrl`
 - Internal endpoint transformer: `handleInternalMarkdownRequest`
 - Route wrapper for fetch-style handlers: `withNextMarkdownRouteHandler`
@@ -115,16 +126,12 @@ What it provides:
 
 ```ts
 // proxy.ts (Next 16+) or middleware.ts
-import { NextResponse } from 'next/server';
-import {
-  buildInternalRewriteUrl,
-  normalizeRoutingOptions,
-  shouldRewriteRequestToMarkdown
-} from '@web-markdown/adapters-next';
+import { NextResponse } from "next/server";
+import { buildInternalRewriteUrl, normalizeRoutingOptions, shouldRewriteRequestToMarkdown } from "@web-markdown/adapters-next";
 
 const routing = normalizeRoutingOptions({
-  include: ['/docs/**'],
-  exclude: ['/docs/private']
+  include: ["/docs/**"],
+  exclude: ["/docs/private"],
 });
 
 export default function proxy(request: Request): Response {
@@ -137,18 +144,18 @@ export default function proxy(request: Request): Response {
 ```
 
 ```ts
-// app/__web_markdown__/route.ts
-import { handleInternalMarkdownRequest } from '@web-markdown/adapters-next';
-import { createDefaultConverter } from '@web-markdown/converters';
+// app/api/web-markdown/route.ts
+import { handleInternalMarkdownRequest } from "@web-markdown/adapters-next";
+import { createDefaultConverter } from "@web-markdown/converters";
 
 const options = {
   converter: createDefaultConverter({
-    mode: 'content',
-    addFrontMatter: true
+    mode: "content",
+    addFrontMatter: true,
   }),
-  include: ['/docs/**'],
-  exclude: ['/docs/private'],
-  debugHeaders: true
+  include: ["/docs/**"],
+  exclude: ["/docs/private"],
+  debugHeaders: true,
 };
 
 export async function GET(request: Request): Promise<Response> {
@@ -165,27 +172,27 @@ export async function HEAD(request: Request): Promise<Response> {
 Use the same `proxy.ts`/`middleware.ts` pattern, and serve the internal endpoint from a page with `getServerSideProps` (not an API route):
 
 ```tsx
-// pages/__web_markdown__.tsx
-import type { GetServerSideProps, NextPage } from 'next';
-import { handleInternalMarkdownRequest } from '@web-markdown/adapters-next';
-import { createDefaultConverter } from '@web-markdown/converters';
+// pages/web-markdown.tsx
+import type { GetServerSideProps, NextPage } from "next";
+import { handleInternalMarkdownRequest } from "@web-markdown/adapters-next";
+import { createDefaultConverter } from "@web-markdown/converters";
 
 const MarkdownPage: NextPage = () => null;
 
 const options = {
-  converter: createDefaultConverter({ mode: 'content', addFrontMatter: true }),
-  include: ['/docs/**'],
-  exclude: ['/docs/private']
+  converter: createDefaultConverter({ mode: "content", addFrontMatter: true }),
+  include: ["/docs/**"],
+  exclude: ["/docs/private"],
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const host = context.req.headers.host ?? 'localhost:3000';
-  const protocol = context.req.headers['x-forwarded-proto'] ?? 'http';
-  const requestUrl = new URL(context.resolvedUrl ?? context.req.url ?? '/', `${protocol}://${host}`);
+  const host = context.req.headers.host ?? "localhost:3000";
+  const protocol = context.req.headers["x-forwarded-proto"] ?? "http";
+  const requestUrl = new URL(context.resolvedUrl ?? context.req.url ?? "/", `${protocol}://${host}`);
 
   const request = new Request(requestUrl, {
-    method: context.req.method ?? 'GET',
-    headers: context.req.headers as HeadersInit
+    method: context.req.method ?? "GET",
+    headers: context.req.headers as HeadersInit,
   });
 
   const response = await handleInternalMarkdownRequest(request, options);
@@ -203,17 +210,21 @@ export default MarkdownPage;
 ```
 
 Next integration notes:
+
 - Markdown negotiation stays explicit (`Accept: text/markdown` only).
 - Default exclusions skip `/api`, `/_next`, static assets, and the internal endpoint path.
 - Include/exclude controls are path-based and shared across proxy + endpoint code.
+- Internal endpoint access is intentionally internal-only; direct calls can return `404`.
 - Internal endpoint fetches source HTML with a bypass header to avoid rewrite loops.
 
 ## Content mode behavior
+
 - Removes common boilerplate selectors (navigation/footer/cookie and similar chrome).
 - Selects primary content by semantic root first (`main`/`article`), then uses structural scoring fallback for non-semantic pages.
 - Prunes likely boilerplate subtrees by link-density and UI-hint patterns (`related`, `sidebar`, `breadcrumbs`, etc).
 
 ## HTTP semantics and caching notes
+
 - No explicit `text/markdown` in `Accept`: pass through original response.
 - Redirects (`3xx`): never transformed.
 - Non-HTML content types: never transformed.
@@ -228,13 +239,16 @@ Next integration notes:
   - `Content-Length`, `Content-Encoding`, and `ETag` are removed because the payload changes.
 
 ## Front matter metadata behavior
+
 - `canonical` is populated from `link[rel=canonical]`, then `og:url`, then `twitter:url`.
 - `url` uses best available source in order: canonical URL, response URL, request URL.
 - URL fragments are removed from metadata URLs and rewritten absolute links for stability.
 - `title` and `description` fall back through standard metadata tags (`title`, `og:*`, `twitter:*`).
 
 ## Observability
+
 `transformFetchResponse` exposes `onObservation` with:
+
 - `durationMs`
 - `htmlBytes`
 - `markdownBytes`
@@ -242,10 +256,12 @@ Next integration notes:
 - fallback `reason` (for example: `not-acceptable`, `not-html`, `too-large`, `streamed-unsupported`)
 
 Optional debug headers:
+
 - `X-Markdown-Transformed: 1|0`
 - `X-Markdown-Converter: <version>`
 
 ## Development
+
 ```bash
 pnpm install
 pnpm test
@@ -255,10 +271,12 @@ pnpm build
 ```
 
 ## Playground
+
 - Express: `pnpm --filter @web-markdown/playground-express start`
 - Next: `pnpm --filter @web-markdown/playground-next dev`
 
 ## Milestone status
+
 - M1 complete: core negotiation, fetch transformer, default converter, semantics + snapshot tests.
 - M2 complete: Express adapter and integration tests.
 - M3 complete: Next integration primitives + manual playground wiring.

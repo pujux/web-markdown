@@ -1,14 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-import {
-  buildInternalRewriteUrl,
-  normalizeRoutingOptions,
-  shouldRewriteRequestToMarkdown
-} from '@web-markdown/adapters-next';
+import { buildInternalRewriteUrl, normalizeRoutingOptions, shouldRewriteRequestToMarkdown } from "@web-markdown/adapters-next";
 
 const routing = normalizeRoutingOptions({
-  include: ['/docs/**'],
-  exclude: ['/docs/private']
+  include: ["/**"],
+  exclude: ["/not-markdown"],
 });
 
 export default function proxy(request: Request): Response {

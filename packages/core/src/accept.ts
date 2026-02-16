@@ -1,4 +1,4 @@
-import type { HeaderRecord } from './types';
+import type { HeaderRecord } from "./types";
 
 interface ParsedAcceptEntry {
   mediaType: string;
@@ -8,13 +8,13 @@ interface ParsedAcceptEntry {
 
 function splitCsv(value: string): string[] {
   return value
-    .split(',')
+    .split(",")
     .map((part) => part.trim())
     .filter(Boolean);
 }
 
 function parseQValue(raw: string): number {
-  const cleaned = raw.trim().replace(/^"|"$/g, '');
+  const cleaned = raw.trim().replace(/^"|"$/g, "");
   const parsed = Number(cleaned);
 
   if (!Number.isFinite(parsed) || parsed < 0) {
@@ -26,14 +26,14 @@ function parseQValue(raw: string): number {
 
 function parseAcceptHeader(accept: string): ParsedAcceptEntry[] {
   return splitCsv(accept).map((entry, order) => {
-    const segments = entry.split(';').map((segment) => segment.trim());
-    const mediaType = (segments[0] ?? '').toLowerCase();
+    const segments = entry.split(";").map((segment) => segment.trim());
+    const mediaType = (segments[0] ?? "").toLowerCase();
 
     let q = 1;
 
     for (const segment of segments.slice(1)) {
-      const [key, value] = segment.split('=');
-      if (key?.trim().toLowerCase() !== 'q' || value === undefined) {
+      const [key, value] = segment.split("=");
+      if (key?.trim().toLowerCase() !== "q" || value === undefined) {
         continue;
       }
 
@@ -58,21 +58,21 @@ function getHeaderValue(headers: Headers | HeaderRecord, name: string): string |
   }
 
   if (Array.isArray(exact)) {
-    return exact.join(', ');
+    return exact.join(", ");
   }
 
-  return typeof exact === 'string' ? exact : exact.join(', ');
+  return typeof exact === "string" ? exact : exact.join(", ");
 }
 
 export function acceptsMarkdown(headers: Headers | HeaderRecord): boolean {
-  const accept = getHeaderValue(headers, 'accept');
+  const accept = getHeaderValue(headers, "accept");
 
   if (!accept) {
     return false;
   }
 
   const matches = parseAcceptHeader(accept)
-    .filter((entry) => entry.mediaType === 'text/markdown')
+    .filter((entry) => entry.mediaType === "text/markdown")
     .sort((left, right) => right.q - left.q || left.order - right.order);
 
   if (matches.length === 0) {

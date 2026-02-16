@@ -3,9 +3,5 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "include": [
-    "packages/**/*.ts",
-    "vitest.config.ts",
-    "eslint.config.js"
-  ]
+  "include": ["packages/**/*.ts", "vitest.config.ts", "eslint.config.js"]
 }

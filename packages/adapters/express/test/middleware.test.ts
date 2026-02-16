@@ -53,6 +53,10 @@ function createApp(overrides?: Partial<Parameters<typeof createExpressMarkdownMi
     res.end('<p>Body</p></main></body></html>');
   });
 
+  app.get('/not-markdown', (_req, res) => {
+    res.type('html').send('<!doctype html><html><body><main><h1>No Markdown</h1></main></body></html>');
+  });
+
   return { app, onObservation };
 }
 
@@ -145,5 +149,31 @@ describe('createExpressMarkdownMiddleware', () => {
       transformed: true,
       status: 200
     });
+  });
+
+  it('respects include and exclude route filters', async () => {
+    const { app } = createApp({
+      include: ['/html', '/not-markdown'],
+      exclude: ['/not-markdown']
+    });
+
+    const included = await request(app).get('/html').set('Accept', 'text/markdown');
+    expect(included.status).toBe(200);
+    expect(included.headers['content-type']).toContain('text/markdown');
+    expect(included.headers['x-markdown-transformed']).toBe('1');
+
+    const excluded = await request(app).get('/not-markdown').set('Accept', 'text/markdown');
+    expect(excluded.status).toBe(200);
+    expect(excluded.headers['content-type']).toContain('text/html');
+    expect(excluded.headers.vary).toContain('Accept');
+    expect(excluded.headers['x-markdown-transformed']).toBe('0');
+    expect(excluded.text).toContain('<h1>No Markdown</h1>');
+
+    const notIncluded = await request(app).get('/large').set('Accept', 'text/markdown');
+    expect(notIncluded.status).toBe(200);
+    expect(notIncluded.headers['content-type']).toContain('text/html');
+    expect(notIncluded.headers.vary).toContain('Accept');
+    expect(notIncluded.headers['x-markdown-transformed']).toBe('0');
+    expect(notIncluded.text).toContain('<p>');
   });
 });

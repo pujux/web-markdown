@@ -1,15 +1,15 @@
 function splitVary(value: string): string[] {
   return value
-    .split(',')
+    .split(",")
     .map((token) => token.trim())
     .filter(Boolean);
 }
 
 export function mergeVary(existing: string | null | undefined, value: string): string {
-  const existingTokens = splitVary(existing ?? '');
+  const existingTokens = splitVary(existing ?? "");
 
-  if (existingTokens.some((token) => token === '*')) {
-    return '*';
+  if (existingTokens.some((token) => token === "*")) {
+    return "*";
   }
 
   const incomingTokens = splitVary(value);
@@ -25,5 +25,5 @@ export function mergeVary(existing: string | null | undefined, value: string): s
     seen.add(key);
   }
 
-  return existingTokens.join(', ');
+  return existingTokens.join(", ");
 }

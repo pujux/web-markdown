@@ -1,9 +1,13 @@
-import type { RequestHandler, Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import type { RequestHandler, Request as ExpressRequest, Response as ExpressResponse } from "express";
 
-import { transformFetchResponse, type TransformFetchResponseOptions } from '@web-markdown/transform-fetch';
+import { transformFetchResponse, type TransformFetchResponseOptions } from "@web-markdown/transform-fetch";
+
+export type ExpressPathPattern = string | RegExp | ((pathname: string) => boolean);
 
 export interface ExpressMarkdownMiddlewareOptions extends TransformFetchResponseOptions {
   getRequestUrl?: (req: ExpressRequest) => string;
+  include?: ExpressPathPattern[];
+  exclude?: ExpressPathPattern[];
 }
 
 interface FinalizedResponse {
@@ -19,13 +23,13 @@ function isDefined<T>(value: T | undefined | null): value is T {
 
 function headerValueToString(value: string | number | readonly string[]): string {
   if (Array.isArray(value)) {
-    return value.join(', ');
+    return value.join(", ");
   }
 
   return String(value);
 }
 
-function expressHeadersToFetchHeaders(headers: ExpressResponse['getHeaders'] extends () => infer T ? T : never): Headers {
+function expressHeadersToFetchHeaders(headers: ExpressResponse["getHeaders"] extends () => infer T ? T : never): Headers {
   const out = new Headers();
 
   for (const [name, value] of Object.entries(headers)) {
@@ -46,7 +50,7 @@ function expressHeadersToFetchHeaders(headers: ExpressResponse['getHeaders'] ext
   return out;
 }
 
-function requestHeadersToFetchHeaders(headers: ExpressRequest['headers']): Headers {
+function requestHeadersToFetchHeaders(headers: ExpressRequest["headers"]): Headers {
   const out = new Headers();
 
   for (const [name, value] of Object.entries(headers)) {
@@ -68,10 +72,89 @@ function requestHeadersToFetchHeaders(headers: ExpressRequest['headers']): Heade
 }
 
 function defaultRequestUrl(req: ExpressRequest): string {
-  const protocol = req.protocol || 'http';
-  const host = req.get('host') || 'localhost';
-  const path = req.originalUrl || req.url || '/';
+  const protocol = req.protocol || "http";
+  const host = req.get("host") || "localhost";
+  const path = req.originalUrl || req.url || "/";
   return new URL(path, `${protocol}://${host}`).toString();
+}
+
+function normalizePathname(pathname: string): string {
+  if (!pathname) {
+    return "/";
+  }
+
+  const withLeadingSlash = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  if (withLeadingSlash.length > 1 && withLeadingSlash.endsWith("/")) {
+    return withLeadingSlash.slice(0, -1);
+  }
+
+  return withLeadingSlash;
+}
+
+function globToRegExp(glob: string): RegExp {
+  const escaped = glob
+    .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*\*/g, "::DOUBLE_STAR::")
+    .replace(/\*/g, "[^/]*")
+    .replace(/::DOUBLE_STAR::/g, ".*");
+
+  return new RegExp(`^${escaped}$`);
+}
+
+function matchesStringPattern(pattern: string, pathname: string): boolean {
+  if (pattern.includes("*")) {
+    return globToRegExp(normalizePathname(pattern)).test(pathname);
+  }
+
+  const normalizedPattern = normalizePathname(pattern);
+  if (pathname === normalizedPattern) {
+    return true;
+  }
+
+  if (normalizedPattern === "/") {
+    return true;
+  }
+
+  return pathname.startsWith(`${normalizedPattern}/`);
+}
+
+function pathMatchesPattern(pathname: string, pattern: ExpressPathPattern): boolean {
+  if (typeof pattern === "function") {
+    return pattern(pathname);
+  }
+
+  if (typeof pattern === "string") {
+    return matchesStringPattern(pattern, pathname);
+  }
+
+  return pattern.test(pathname);
+}
+
+function pathMatchesAny(pathname: string, patterns: ExpressPathPattern[]): boolean {
+  return patterns.some((pattern) => pathMatchesPattern(pathname, pattern));
+}
+
+function getPathnameForRequest(req: ExpressRequest, options: ExpressMarkdownMiddlewareOptions): string {
+  try {
+    const requestUrl = options.getRequestUrl?.(req) ?? defaultRequestUrl(req);
+    return normalizePathname(new URL(requestUrl).pathname);
+  } catch {
+    const raw = req.originalUrl || req.url || "/";
+    const pathname = raw.split("?")[0] ?? "/";
+    return normalizePathname(pathname);
+  }
+}
+
+function shouldTransformPathname(pathname: string, options: ExpressMarkdownMiddlewareOptions): boolean {
+  if (options.exclude && pathMatchesAny(pathname, options.exclude)) {
+    return false;
+  }
+
+  if (options.include && options.include.length > 0) {
+    return pathMatchesAny(pathname, options.include);
+  }
+
+  return true;
 }
 
 function normalizeChunk(chunk: unknown, encoding?: BufferEncoding): Buffer | undefined {
@@ -83,8 +166,8 @@ function normalizeChunk(chunk: unknown, encoding?: BufferEncoding): Buffer | und
     return chunk;
   }
 
-  if (typeof chunk === 'string') {
-    return Buffer.from(chunk, encoding ?? 'utf8');
+  if (typeof chunk === "string") {
+    return Buffer.from(chunk, encoding ?? "utf8");
   }
 
   if (chunk instanceof Uint8Array) {
@@ -96,9 +179,9 @@ function normalizeChunk(chunk: unknown, encoding?: BufferEncoding): Buffer | und
 
 function restoreResponseMethods(
   res: ExpressResponse,
-  originalWrite: ExpressResponse['write'],
-  originalEnd: ExpressResponse['end'],
-  originalFlushHeaders: ExpressResponse['flushHeaders'] | undefined
+  originalWrite: ExpressResponse["write"],
+  originalEnd: ExpressResponse["end"],
+  originalFlushHeaders: ExpressResponse["flushHeaders"] | undefined,
 ): void {
   res.write = originalWrite;
   res.end = originalEnd;
@@ -114,7 +197,7 @@ function applyFetchHeaders(res: ExpressResponse, headers: Headers): void {
   }
 
   for (const [name, value] of headers.entries()) {
-    if (name.toLowerCase() === 'set-cookie') {
+    if (name.toLowerCase() === "set-cookie") {
       continue;
     }
 
@@ -122,10 +205,10 @@ function applyFetchHeaders(res: ExpressResponse, headers: Headers): void {
   }
 
   const getSetCookie = (headers as Headers & { getSetCookie?: () => string[] }).getSetCookie;
-  if (typeof getSetCookie === 'function') {
+  if (typeof getSetCookie === "function") {
     const values = getSetCookie.call(headers);
     if (values.length > 0) {
-      res.setHeader('set-cookie', values);
+      res.setHeader("set-cookie", values);
     }
   }
 }
@@ -134,21 +217,21 @@ async function finalizeTransform(
   req: ExpressRequest,
   res: ExpressResponse,
   body: Buffer,
-  options: ExpressMarkdownMiddlewareOptions
+  options: ExpressMarkdownMiddlewareOptions,
 ): Promise<FinalizedResponse> {
   const request = new Request(options.getRequestUrl?.(req) ?? defaultRequestUrl(req), {
     method: req.method,
-    headers: requestHeadersToFetchHeaders(req.headers)
+    headers: requestHeadersToFetchHeaders(req.headers),
   });
 
   const upstream = new Response(new Uint8Array(body), {
     status: res.statusCode,
     statusText: res.statusMessage,
-    headers: expressHeadersToFetchHeaders(res.getHeaders())
+    headers: expressHeadersToFetchHeaders(res.getHeaders()),
   });
 
   const transformOptions: TransformFetchResponseOptions = {
-    converter: options.converter
+    converter: options.converter,
   };
 
   if (options.maxHtmlBytes !== undefined) {
@@ -173,14 +256,22 @@ async function finalizeTransform(
     status: transformed.status,
     statusText: transformed.statusText,
     headers: transformed.headers,
-    body: Buffer.from(await transformed.arrayBuffer())
+    body: Buffer.from(await transformed.arrayBuffer()),
   };
 }
 
-export function createExpressMarkdownMiddleware(
-  options: ExpressMarkdownMiddlewareOptions
-): RequestHandler {
+export function createExpressMarkdownMiddleware(options: ExpressMarkdownMiddlewareOptions): RequestHandler {
   return (req, res, next) => {
+    const pathname = getPathnameForRequest(req, options);
+    if (!shouldTransformPathname(pathname, options)) {
+      res.vary("Accept");
+      if (options.debugHeaders) {
+        res.setHeader("X-Markdown-Transformed", "0");
+      }
+      next();
+      return;
+    }
+
     const originalWrite = res.write.bind(res);
     const originalEnd = res.end.bind(res);
     const originalFlushHeaders = res.flushHeaders?.bind(res);
@@ -209,10 +300,10 @@ export function createExpressMarkdownMiddleware(
     };
 
     if (originalFlushHeaders) {
-      res.flushHeaders = (() => {
+      res.flushHeaders = () => {
         disableCapture();
         originalFlushHeaders();
-      }) as ExpressResponse['flushHeaders'];
+      };
     }
 
     res.write = ((chunk: unknown, encoding?: BufferEncoding, callback?: (error?: Error) => void) => {
@@ -233,7 +324,7 @@ export function createExpressMarkdownMiddleware(
       }
 
       return true;
-    }) as ExpressResponse['write'];
+    }) as ExpressResponse["write"];
 
     res.end = ((chunk?: unknown, encoding?: BufferEncoding, callback?: () => void) => {
       if (ended) {
@@ -279,7 +370,7 @@ export function createExpressMarkdownMiddleware(
         .catch(next);
 
       return res;
-    }) as ExpressResponse['end'];
+    }) as ExpressResponse["end"];
 
     next();
   };

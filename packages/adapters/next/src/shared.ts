@@ -1,4 +1,4 @@
-import { acceptsMarkdown } from '@web-markdown/core';
+import { acceptsMarkdown } from "@web-markdown/core";
 
 export type NextPathPattern = string | RegExp | ((pathname: string) => boolean);
 
@@ -20,23 +20,22 @@ export interface NormalizedNextMarkdownRoutingOptions {
   bypassHeaderValue: string;
 }
 
-const DEFAULT_INTERNAL_PATH = '/__web_markdown__';
-const DEFAULT_SOURCE_QUERY_PARAM = '__wm_source';
-const DEFAULT_BYPASS_HEADER_NAME = 'x-web-markdown-bypass';
-const DEFAULT_BYPASS_HEADER_VALUE = '1';
+const DEFAULT_INTERNAL_PATH = "api/web-markdown";
+const DEFAULT_SOURCE_QUERY_PARAM = "wmsource";
+const DEFAULT_BYPASS_HEADER_NAME = "x-web-markdown-bypass";
+const DEFAULT_BYPASS_HEADER_VALUE = "1";
 
-const DEFAULT_EXCLUDE_PREFIXES = ['/_next', '/api'];
-const DEFAULT_EXCLUDE_EXACT = ['/favicon.ico', '/robots.txt', '/sitemap.xml', '/manifest.json'];
-const ASSET_PATH_PATTERN =
-  /\.(?:avif|bmp|css|gif|ico|jpeg|jpg|js|json|map|mjs|png|svg|txt|webp|woff|woff2|ttf|eot|otf|xml|pdf|zip)$/i;
+const DEFAULT_EXCLUDE_PREFIXES = ["/_next", "/api"];
+const DEFAULT_EXCLUDE_EXACT = ["/favicon.ico", "/robots.txt", "/sitemap.xml", "/manifest.json"];
+const ASSET_PATH_PATTERN = /\.(?:avif|bmp|css|gif|ico|jpeg|jpg|js|json|map|mjs|png|svg|txt|webp|woff|woff2|ttf|eot|otf|xml|pdf|zip)$/i;
 
 function normalizePathname(pathname: string): string {
   if (!pathname) {
-    return '/';
+    return "/";
   }
 
-  const withLeadingSlash = pathname.startsWith('/') ? pathname : `/${pathname}`;
-  if (withLeadingSlash.length > 1 && withLeadingSlash.endsWith('/')) {
+  const withLeadingSlash = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  if (withLeadingSlash.length > 1 && withLeadingSlash.endsWith("/")) {
     return withLeadingSlash.slice(0, -1);
   }
 
@@ -45,16 +44,16 @@ function normalizePathname(pathname: string): string {
 
 function globToRegExp(glob: string): RegExp {
   const escaped = glob
-    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*\*/g, '::DOUBLE_STAR::')
-    .replace(/\*/g, '[^/]*')
-    .replace(/::DOUBLE_STAR::/g, '.*');
+    .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*\*/g, "::DOUBLE_STAR::")
+    .replace(/\*/g, "[^/]*")
+    .replace(/::DOUBLE_STAR::/g, ".*");
 
   return new RegExp(`^${escaped}$`);
 }
 
 function matchesStringPattern(pattern: string, pathname: string): boolean {
-  if (pattern.includes('*')) {
+  if (pattern.includes("*")) {
     return globToRegExp(normalizePathname(pattern)).test(pathname);
   }
 
@@ -64,7 +63,7 @@ function matchesStringPattern(pattern: string, pathname: string): boolean {
     return true;
   }
 
-  if (normalizedPattern === '/') {
+  if (normalizedPattern === "/") {
     return true;
   }
 
@@ -72,11 +71,11 @@ function matchesStringPattern(pattern: string, pathname: string): boolean {
 }
 
 export function pathMatchesPattern(pathname: string, pattern: NextPathPattern): boolean {
-  if (typeof pattern === 'function') {
+  if (typeof pattern === "function") {
     return pattern(pathname);
   }
 
-  if (typeof pattern === 'string') {
+  if (typeof pattern === "string") {
     return matchesStringPattern(pattern, pathname);
   }
 
@@ -107,23 +106,18 @@ function isDefaultExcluded(pathname: string): boolean {
   return ASSET_PATH_PATTERN.test(pathname);
 }
 
-export function normalizeRoutingOptions(
-  options: NextMarkdownRoutingOptions = {}
-): NormalizedNextMarkdownRoutingOptions {
+export function normalizeRoutingOptions(options: NextMarkdownRoutingOptions = {}): NormalizedNextMarkdownRoutingOptions {
   return {
     include: options.include ?? [],
     exclude: options.exclude ?? [],
     internalPath: normalizePathname(options.internalPath ?? DEFAULT_INTERNAL_PATH),
     sourceQueryParam: options.sourceQueryParam ?? DEFAULT_SOURCE_QUERY_PARAM,
     bypassHeaderName: (options.bypassHeaderName ?? DEFAULT_BYPASS_HEADER_NAME).toLowerCase(),
-    bypassHeaderValue: options.bypassHeaderValue ?? DEFAULT_BYPASS_HEADER_VALUE
+    bypassHeaderValue: options.bypassHeaderValue ?? DEFAULT_BYPASS_HEADER_VALUE,
   };
 }
 
-export function shouldServeMarkdownForPath(
-  pathname: string,
-  options: NormalizedNextMarkdownRoutingOptions
-): boolean {
+export function shouldServeMarkdownForPath(pathname: string, options: NormalizedNextMarkdownRoutingOptions): boolean {
   const normalizedPath = normalizePathname(pathname);
 
   if (pathStartsWithPrefix(normalizedPath, options.internalPath)) {
@@ -146,11 +140,11 @@ export function shouldServeMarkdownForPath(
 }
 
 export function shouldRewriteRequestToMarkdown(
-  request: Pick<Request, 'url' | 'headers' | 'method'>,
-  options: NormalizedNextMarkdownRoutingOptions
+  request: Pick<Request, "url" | "headers" | "method">,
+  options: NormalizedNextMarkdownRoutingOptions,
 ): boolean {
   const method = request.method.toUpperCase();
-  if (method !== 'GET' && method !== 'HEAD') {
+  if (method !== "GET" && method !== "HEAD") {
     return false;
   }
 
@@ -167,32 +161,9 @@ export function shouldRewriteRequestToMarkdown(
   return shouldServeMarkdownForPath(url.pathname, options);
 }
 
-export function buildInternalRewriteUrl(
-  requestUrl: string,
-  options: NormalizedNextMarkdownRoutingOptions
-): URL {
+export function buildInternalRewriteUrl(requestUrl: string, options: NormalizedNextMarkdownRoutingOptions): URL {
   const original = new URL(requestUrl);
   const internal = new URL(options.internalPath, original.origin);
   internal.searchParams.set(options.sourceQueryParam, `${original.pathname}${original.search}`);
   return internal;
-}
-
-export function resolveSourceUrl(
-  requestUrl: string,
-  options: NormalizedNextMarkdownRoutingOptions
-): URL | null {
-  const internalUrl = new URL(requestUrl);
-  const source = internalUrl.searchParams.get(options.sourceQueryParam);
-
-  if (!source) {
-    return null;
-  }
-
-  const resolved = new URL(source, internalUrl.origin);
-
-  if (resolved.origin !== internalUrl.origin) {
-    return null;
-  }
-
-  return resolved;
 }

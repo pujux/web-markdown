@@ -10,7 +10,7 @@ function extractCharset(contentType: string | null): string | undefined {
   }
 
   const match = contentType.match(/charset=([^;\s]+)/i);
-  return match?.[1]?.trim().replace(/^"|"$/g, '');
+  return match?.[1]?.trim().replace(/^"|"$/g, "");
 }
 
 function concatChunks(chunks: Uint8Array[], size: number): Uint8Array {
@@ -25,12 +25,9 @@ function concatChunks(chunks: Uint8Array[], size: number): Uint8Array {
   return output;
 }
 
-export async function readBodyTextWithLimit(
-  response: Response,
-  maxBytes: number
-): Promise<ReadBodyResult> {
+export async function readBodyTextWithLimit(response: Response, maxBytes: number): Promise<ReadBodyResult> {
   if (!response.body) {
-    return { overflow: false, text: '', bytes: 0 };
+    return { overflow: false, text: "", bytes: 0 };
   }
 
   const reader = response.body.getReader();
@@ -50,25 +47,25 @@ export async function readBodyTextWithLimit(
     bytes += value.byteLength;
     if (bytes > maxBytes) {
       void reader.cancel();
-      return { overflow: true, text: '', bytes };
+      return { overflow: true, text: "", bytes };
     }
 
     chunks.push(value);
   }
 
   const body = concatChunks(chunks, bytes);
-  const charset = extractCharset(response.headers.get('content-type'));
+  const charset = extractCharset(response.headers.get("content-type"));
 
   let decoder: TextDecoder;
   try {
-    decoder = new TextDecoder(charset ?? 'utf-8');
+    decoder = new TextDecoder(charset ?? "utf-8");
   } catch {
-    decoder = new TextDecoder('utf-8');
+    decoder = new TextDecoder("utf-8");
   }
 
   return {
     overflow: false,
     text: decoder.decode(body),
-    bytes
+    bytes,
   };
 }

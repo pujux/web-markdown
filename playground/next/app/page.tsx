@@ -1,13 +1,17 @@
-export default function HomePage() {
+export default function Page() {
   return (
     <main>
-      <h1>web-markdown Next Playground</h1>
+      <h1>Markdown-ready Page</h1>
       <p>
-        Visit <a href="/docs">/docs</a> and request with <code>Accept: text/markdown</code>.
+        This page is served as markdown when <code>Accept: text/markdown</code> is requested.
       </p>
       <p>
-        <code>/docs/private</code> is excluded to demonstrate include/exclude control.
+        <a href="/not-markdown">HTML-only page (excluded from markdown)</a>
       </p>
+      <ul>
+        <li>Normal HTML still works for browsers.</li>
+        <li>Markdown negotiation is explicit by Accept header.</li>
+      </ul>
     </main>
   );
 }
