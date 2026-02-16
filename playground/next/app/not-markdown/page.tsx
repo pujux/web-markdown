@@ -6,8 +6,11 @@ export const metadata = {
 export default function NotMarkdownPage() {
   return (
     <main>
-      <h1>HTML Only Page</h1>
-      <p>This path is excluded from markdown transformation in middleware config.</p>
+      <h1>HTML-only page</h1>
+      <p>This path is excluded from markdown transformation in route options.</p>
+      <p>
+        <a href="/">Back to home</a>
+      </p>
     </main>
   );
 }

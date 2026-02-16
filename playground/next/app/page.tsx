@@ -1,17 +1,35 @@
 export default function Page() {
   return (
     <main>
-      <h1>Markdown-ready Page</h1>
+      <h1>Next playground</h1>
       <p>
-        This page is served as markdown when <code>Accept: text/markdown</code> is requested.
-      </p>
-      <p>
-        <a href="/not-markdown">HTML-only page (excluded from markdown)</a>
+        This project uses manual proxy + internal endpoint integration so pages can negotiate
+        markdown without changing normal browser HTML behavior.
       </p>
       <ul>
-        <li>Normal HTML still works for browsers.</li>
-        <li>Markdown negotiation is explicit by Accept header.</li>
+        <li>
+          <a href="/rich">/rich</a> conversion quality + front matter metadata.
+        </li>
+        <li>
+          <a href="/hooks">/hooks</a> rewriteLink/rewriteImage hook demo.
+        </li>
+        <li>
+          <a href="/not-markdown">/not-markdown</a> excluded from markdown transformation.
+        </li>
+        <li>
+          <a href="/file">/file</a> non-HTML response passthrough.
+        </li>
+        <li>
+          <a href="/jump">/jump</a> redirect passthrough.
+        </li>
+        <li>
+          <a href="/api/health">/api/health</a> API route excluded by default.
+        </li>
       </ul>
+      <p>
+        Use <code>Accept: text/markdown</code> and inspect <code>Vary</code> plus markdown debug
+        headers.
+      </p>
     </main>
   );
 }
