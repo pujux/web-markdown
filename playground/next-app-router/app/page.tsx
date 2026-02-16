@@ -1,10 +1,10 @@
 export default function Page() {
   return (
     <main>
-      <h1>Next playground</h1>
+      <h1>Next App Router playground</h1>
       <p>
-        This project uses manual proxy + internal endpoint integration so pages can negotiate
-        markdown without changing normal browser HTML behavior.
+        This project demonstrates manual App Router integration for markdown negotiation with proxy
+        + an internal route handler.
       </p>
       <ul>
         <li>

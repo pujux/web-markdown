@@ -103,7 +103,7 @@ importers:
         specifier: ^5.2.1
         version: 5.2.1
 
-  playground/next:
+  playground/next-app-router:
     dependencies:
       '@web-markdown/adapters-next':
         specifier: workspace:*
@@ -121,6 +121,31 @@ importers:
         specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
     devDependencies:
+      '@types/react':
+        specifier: 19.2.14
+        version: 19.2.14
+
+  playground/next-pages-router:
+    dependencies:
+      '@web-markdown/adapters-next':
+        specifier: workspace:*
+        version: link:../../packages/adapters/next
+      '@web-markdown/converters':
+        specifier: workspace:*
+        version: link:../../packages/converters
+      next:
+        specifier: 16.1.6
+        version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@types/node':
+        specifier: 25.2.3
+        version: 25.2.3
       '@types/react':
         specifier: 19.2.14
         version: 19.2.14

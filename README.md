@@ -282,10 +282,12 @@ pnpm build
 ## Playground
 
 - Express: `pnpm --filter @web-markdown/playground-express start`
-- Next: `pnpm --filter @web-markdown/playground-next dev`
-- Both playgrounds include capability walkthroughs with curl commands in:
+- Next App Router: `pnpm --filter @web-markdown/playground-next-app-router dev`
+- Next Pages Router: `pnpm --filter @web-markdown/playground-next-pages-router dev`
+- Playgrounds include capability walkthroughs with curl commands in:
   - `playground/express/README.md`
-  - `playground/next/README.md`
+  - `playground/next-app-router/README.md`
+  - `playground/next-pages-router/README.md`
 - The walkthroughs cover negotiation/q-values, `Vary: Accept`, include/exclude behavior, non-HTML and redirect passthrough, debug headers, and observability hooks.
 
 ## Milestone status

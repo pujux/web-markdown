@@ -1,9 +1,9 @@
-# Next Playground
+# Next App Router Playground
 
 Run:
 
 ```bash
-pnpm --filter @web-markdown/playground-next dev
+pnpm --filter @web-markdown/playground-next-app-router dev
 ```
 
 Use page URLs (not the internal endpoint):

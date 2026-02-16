@@ -1,11 +1,11 @@
 {
-  "name": "@web-markdown/playground-next",
+  "name": "@web-markdown/playground-next-pages-router",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "build": "next build --webpack",
-    "dev": "next dev -p 3002",
-    "start": "next start -p 3002"
+    "dev": "next dev -p 3003",
+    "start": "next start -p 3003"
   },
   "dependencies": {
     "@web-markdown/adapters-next": "workspace:*",
@@ -15,6 +15,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@types/node": "25.2.3",
     "@types/react": "19.2.14"
   }
 }

@@ -1,6 +1,5 @@
 import { handleInternalMarkdownRequest } from "@web-markdown/adapters-next";
 import { createDefaultConverter } from "@web-markdown/converters";
-import type { TransformObservation } from "@web-markdown/transform-fetch";
 
 const routing = {
   include: ["/**"],
@@ -38,7 +37,7 @@ const options = {
   maxHtmlBytes: 3 * 1024 * 1024,
   oversizeBehavior: "passthrough" as const,
   debugHeaders: true,
-  onObservation: (event: TransformObservation) => {
+  onObservation: (event: unknown) => {
     console.log(`[web-markdown:next] ${JSON.stringify(event)}`);
   },
 };
