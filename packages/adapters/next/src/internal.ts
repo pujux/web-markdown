@@ -1,4 +1,5 @@
 import {
+  toTransformFetchOptions,
   transformFetchResponse,
   type TransformFetchResponseOptions,
 } from "@web-markdown/transform-fetch";
@@ -14,30 +15,6 @@ export interface NextMarkdownEndpointOptions
   extends NextMarkdownRoutingOptions, TransformFetchResponseOptions {
   fetchImpl?: typeof fetch;
   upstreamAcceptHeader?: string;
-}
-
-function toTransformOptions(options: NextMarkdownEndpointOptions): TransformFetchResponseOptions {
-  const transformOptions: TransformFetchResponseOptions = {
-    converter: options.converter,
-  };
-
-  if (options.maxHtmlBytes !== undefined) {
-    transformOptions.maxHtmlBytes = options.maxHtmlBytes;
-  }
-
-  if (options.oversizeBehavior !== undefined) {
-    transformOptions.oversizeBehavior = options.oversizeBehavior;
-  }
-
-  if (options.debugHeaders !== undefined) {
-    transformOptions.debugHeaders = options.debugHeaders;
-  }
-
-  if (options.onObservation !== undefined) {
-    transformOptions.onObservation = options.onObservation;
-  }
-
-  return transformOptions;
 }
 
 function notFound(): Response {
@@ -124,9 +101,13 @@ export async function handleInternalMarkdownRequest(
     return transformFetchResponse(
       withHtmlOnlyAccept(markdownRequest),
       upstreamResponse,
-      toTransformOptions(options),
+      toTransformFetchOptions(options),
     );
   }
 
-  return transformFetchResponse(markdownRequest, upstreamResponse, toTransformOptions(options));
+  return transformFetchResponse(
+    markdownRequest,
+    upstreamResponse,
+    toTransformFetchOptions(options),
+  );
 }

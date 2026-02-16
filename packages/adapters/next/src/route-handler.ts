@@ -1,4 +1,5 @@
 import {
+  toTransformFetchOptions,
   transformFetchResponse,
   type TransformFetchResponseOptions,
 } from "@web-markdown/transform-fetch";
@@ -10,38 +11,12 @@ export type NextRouteHandler<TRequest extends Request = Request, TContext = unkn
   context: TContext,
 ) => Response | Promise<Response>;
 
-function toTransformOptions(
-  options: NextMarkdownRouteHandlerOptions,
-): TransformFetchResponseOptions {
-  const transformOptions: TransformFetchResponseOptions = {
-    converter: options.converter,
-  };
-
-  if (options.maxHtmlBytes !== undefined) {
-    transformOptions.maxHtmlBytes = options.maxHtmlBytes;
-  }
-
-  if (options.oversizeBehavior !== undefined) {
-    transformOptions.oversizeBehavior = options.oversizeBehavior;
-  }
-
-  if (options.debugHeaders !== undefined) {
-    transformOptions.debugHeaders = options.debugHeaders;
-  }
-
-  if (options.onObservation !== undefined) {
-    transformOptions.onObservation = options.onObservation;
-  }
-
-  return transformOptions;
-}
-
 export function transformNextResponse(
   request: Request,
   response: Response,
   options: NextMarkdownRouteHandlerOptions,
 ): Promise<Response> {
-  return transformFetchResponse(request, response, toTransformOptions(options));
+  return transformFetchResponse(request, response, toTransformFetchOptions(options));
 }
 
 export function withNextMarkdownRouteHandler<

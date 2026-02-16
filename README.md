@@ -174,48 +174,77 @@ export async function HEAD(request: Request): Promise<Response> {
 
 ### Pages Router manual wiring
 
-Use the same `proxy.ts`/`middleware.ts` pattern, and serve the internal endpoint from a page with `getServerSideProps` (not an API route):
+Use the same `proxy.ts`/`middleware.ts` pattern, and serve the internal endpoint from an API route:
 
-```tsx
-// pages/web-markdown.tsx
-import type { GetServerSideProps, NextPage } from "next";
-import { handleInternalMarkdownRequest } from "@web-markdown/adapters-next";
+```ts
+// pages/api/web-markdown.ts
+import type { NextApiRequest, NextApiResponse } from "next";
+import {
+  normalizeRoutingOptions,
+  handleInternalMarkdownRequest,
+} from "@web-markdown/adapters-next";
 import { createDefaultConverter } from "@web-markdown/converters";
 
-const MarkdownPage: NextPage = () => null;
+const INTERNAL_MARKER_HEADER = "x-web-markdown-internal";
+const INTERNAL_MARKER_VALUE = "1";
+
+const routing = normalizeRoutingOptions({
+  include: ["/docs/**"],
+  exclude: ["/docs/private"],
+});
 
 const options = {
   converter: createDefaultConverter({ mode: "content", addFrontMatter: true }),
-  include: ["/docs/**"],
-  exclude: ["/docs/private"],
+  include: routing.include,
+  exclude: routing.exclude,
 };
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const host = context.req.headers.host ?? "localhost:3000";
-  const protocol = context.req.headers["x-forwarded-proto"] ?? "http";
-  const requestUrl = new URL(
-    context.resolvedUrl ?? context.req.url ?? "/",
-    `${protocol}://${host}`,
-  );
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    res.setHeader("Allow", "GET, HEAD");
+    res.status(405).end("Method Not Allowed");
+    return;
+  }
 
-  const request = new Request(requestUrl, {
-    method: context.req.method ?? "GET",
-    headers: context.req.headers as HeadersInit,
+  if (req.headers[INTERNAL_MARKER_HEADER] !== INTERNAL_MARKER_VALUE) {
+    res.status(404).end("Not Found");
+    return;
+  }
+
+  const source = Array.isArray(req.query.wmsource) ? req.query.wmsource[0] : req.query.wmsource;
+  if (typeof source !== "string" || !source.startsWith("/")) {
+    res.status(400).end("Bad Request");
+    return;
+  }
+
+  const host = req.headers.host ?? "localhost:3000";
+  const protocol = req.headers["x-forwarded-proto"] ?? "http";
+  const request = new Request(new URL(source, `${protocol}://${host}`), {
+    method: req.method,
+    headers: req.headers as HeadersInit,
   });
 
   const response = await handleInternalMarkdownRequest(request, options);
-  context.res.statusCode = response.status;
+  res.status(response.status);
 
   for (const [name, value] of response.headers.entries()) {
-    context.res.setHeader(name, value);
+    res.setHeader(name, value);
   }
 
-  context.res.end(Buffer.from(await response.arrayBuffer()));
-  return { props: {} };
-};
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
 
-export default MarkdownPage;
+  res.end(Buffer.from(await response.arrayBuffer()));
+}
 ```
+
+Reference implementation:
+
+- `/playground/next-pages-router/proxy.ts`
+- `/playground/next-pages-router/pages/api/web-markdown.ts`
+- `/playground/next-pages-router/web-markdown.config.ts`
 
 Next integration notes:
 
@@ -225,6 +254,15 @@ Next integration notes:
 - `shouldRewriteRequestToMarkdownEndpoint` rewrites eligible page requests to the internal endpoint so HTML passthrough responses still include `Vary: Accept`.
 - Internal endpoint access is intentionally internal-only; direct calls can return `404`.
 - Internal endpoint fetches source HTML with a bypass header to avoid rewrite loops.
+
+## Writing custom adapters
+
+Use the adapter contract checklist in `/docs/adapter-authoring.md`.
+
+This repo now exposes shared primitives that help keep adapters thin:
+
+- `@web-markdown/core`: path pattern + include/exclude matching helpers.
+- `@web-markdown/transform-fetch`: response transformer and `toTransformFetchOptions`.
 
 ## Content mode behavior
 

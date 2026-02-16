@@ -1,6 +1,13 @@
-import { acceptsMarkdown, mergeVary } from "@web-markdown/core";
+import {
+  acceptsMarkdown,
+  matchesAnyPathPattern,
+  matchesPathPattern as coreMatchesPathPattern,
+  mergeVary,
+  normalizePathname,
+  type PathPattern,
+} from "@web-markdown/core";
 
-export type NextPathPattern = string | RegExp | ((pathname: string) => boolean);
+export type NextPathPattern = PathPattern;
 
 export interface NextMarkdownRoutingOptions {
   include?: NextPathPattern[];
@@ -30,61 +37,8 @@ const DEFAULT_EXCLUDE_EXACT = ["/favicon.ico", "/robots.txt", "/sitemap.xml", "/
 const ASSET_PATH_PATTERN =
   /\.(?:avif|bmp|css|gif|ico|jpeg|jpg|js|json|map|mjs|png|svg|txt|webp|woff|woff2|ttf|eot|otf|xml|pdf|zip)$/i;
 
-function normalizePathname(pathname: string): string {
-  if (!pathname) {
-    return "/";
-  }
-
-  const withLeadingSlash = pathname.startsWith("/") ? pathname : `/${pathname}`;
-  if (withLeadingSlash.length > 1 && withLeadingSlash.endsWith("/")) {
-    return withLeadingSlash.slice(0, -1);
-  }
-
-  return withLeadingSlash;
-}
-
-function globToRegExp(glob: string): RegExp {
-  const escaped = glob
-    .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-    .replace(/\*\*/g, "::DOUBLE_STAR::")
-    .replace(/\*/g, "[^/]*")
-    .replace(/::DOUBLE_STAR::/g, ".*");
-
-  return new RegExp(`^${escaped}$`);
-}
-
-function matchesStringPattern(pattern: string, pathname: string): boolean {
-  if (pattern.includes("*")) {
-    return globToRegExp(normalizePathname(pattern)).test(pathname);
-  }
-
-  const normalizedPattern = normalizePathname(pattern);
-
-  if (pathname === normalizedPattern) {
-    return true;
-  }
-
-  if (normalizedPattern === "/") {
-    return true;
-  }
-
-  return pathname.startsWith(`${normalizedPattern}/`);
-}
-
 export function pathMatchesPattern(pathname: string, pattern: NextPathPattern): boolean {
-  if (typeof pattern === "function") {
-    return pattern(pathname);
-  }
-
-  if (typeof pattern === "string") {
-    return matchesStringPattern(pattern, pathname);
-  }
-
-  return pattern.test(pathname);
-}
-
-function pathMatchesAny(pathname: string, patterns: NextPathPattern[]): boolean {
-  return patterns.some((pattern) => pathMatchesPattern(pathname, pattern));
+  return coreMatchesPathPattern(pathname, pattern);
 }
 
 function pathStartsWithPrefix(pathname: string, prefix: string): boolean {
@@ -147,12 +101,12 @@ export function shouldServeMarkdownForPath(
     return false;
   }
 
-  if (pathMatchesAny(normalizedPath, options.exclude)) {
+  if (matchesAnyPathPattern(normalizedPath, options.exclude)) {
     return false;
   }
 
   if (options.include.length > 0) {
-    return pathMatchesAny(normalizedPath, options.include);
+    return matchesAnyPathPattern(normalizedPath, options.include);
   }
 
   return true;
