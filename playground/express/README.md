@@ -51,6 +51,6 @@ What to look for:
 - `Vary: Accept` on transformed and passthrough responses.
 - `X-Markdown-Transformed: 1|0` and `X-Markdown-Converter` when transformed.
 - `/guide` shows front matter + canonical/base-aware absolute URLs.
-- `/seo` shows OpenGraph/Twitter tags filling front matter fields (`title`, `description`, `canonical`).
+- `/seo` includes richer SEO tags (`og:image`, `article:author`, `twitter:card`) and still fills front matter fields (`title`, `description`, `canonical`).
 - `/table` demonstrates headings, code blocks, lists, tables, and image alt text.
 - Console logs include `onObservation` payloads for timing/bytes/fallback reasons.

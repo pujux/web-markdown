@@ -122,15 +122,24 @@ app.get("/seo", (_req, res) => {
     <meta property="og:description" content="SEO metadata fallback demo using OpenGraph tags." />
     <meta property="og:url" content="https://docs.example.test/express/seo#overview" />
     <meta property="og:type" content="article" />
+    <meta property="og:image" content="https://docs.example.test/images/seo-og.png" />
+    <meta property="og:image:alt" content="Express SEO preview image" />
+    <meta property="og:site_name" content="web-markdown docs" />
+    <meta property="article:author" content="https://docs.example.test/authors/web-markdown-team" />
+    <meta name="author" content="web-markdown team" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Express SEO via OpenGraph" />
     <meta name="twitter:description" content="Twitter description fallback is also supported." />
+    <meta name="twitter:image" content="https://docs.example.test/images/seo-og.png" />
+    <meta name="twitter:creator" content="@webmarkdown" />
     <meta name="robots" content="index,follow,max-snippet:-1" />
   </head>
   <body>
     <main>
       <h1>SEO metadata demo</h1>
       <p>
-        This page intentionally omits title/canonical/description standard tags so markdown front
-        matter must be populated from OpenGraph and Twitter metadata.
+        This page includes rich OpenGraph and Twitter metadata so markdown output can demonstrate
+        stable metadata extraction.
       </p>
       <p><a href="/guide">Back to guide</a></p>
     </main>

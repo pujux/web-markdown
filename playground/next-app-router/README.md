@@ -42,7 +42,7 @@ What to look for:
 - `Vary: Accept` on transformed and passthrough page responses.
 - `X-Markdown-Transformed: 1|0` and `X-Markdown-Converter` when transformed.
 - Front matter and canonical metadata on `/rich` markdown output.
-- `/seo` shows OpenGraph/Twitter tags filling front matter fields (`title`, `description`, `canonical`).
+- `/seo` includes richer SEO tags (`og:image`, `article:author`, `twitter:card`) and still fills front matter fields (`title`, `description`, `canonical`).
 - `/not-markdown` remains HTML because route options exclude it.
 - `/api/web-markdown` direct calls return `404` by design.
 
