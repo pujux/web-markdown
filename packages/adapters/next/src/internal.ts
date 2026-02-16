@@ -61,6 +61,16 @@ function prepareUpstreamHeaders(
   return headers;
 }
 
+function stripVaryHeaders(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.delete("vary");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 function withHtmlOnlyAccept(request: Request): Request {
   const headers = new Headers(request.headers);
   headers.set("accept", "text/html,application/xhtml+xml;q=0.9,*/*;q=0.1");
@@ -93,7 +103,7 @@ export async function handleInternalMarkdownRequest(
     redirect: "manual",
   });
 
-  const upstreamResponse = await fetchImpl(upstreamRequest);
+  const upstreamResponse = stripVaryHeaders(await fetchImpl(upstreamRequest));
 
   const markdownRequest = new Request(requestUrl.toString(), {
     method: request.method,
