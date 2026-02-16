@@ -167,6 +167,19 @@ function shouldConsiderRequestForRewrite(
     return false;
   }
 
+  // Next App Router flight/data requests are not full document requests.
+  // Rewriting them to the internal markdown endpoint can break client navigation/HMR.
+  const accept = request.headers.get("accept")?.toLowerCase() ?? "";
+  if (
+    accept.includes("text/x-component") ||
+    request.headers.has("rsc") ||
+    request.headers.has("next-router-state-tree") ||
+    request.headers.has("next-router-prefetch") ||
+    request.headers.has("next-router-segment-prefetch")
+  ) {
+    return false;
+  }
+
   const bypassHeader = request.headers.get(options.bypassHeaderName);
   if (bypassHeader && bypassHeader === options.bypassHeaderValue) {
     return false;

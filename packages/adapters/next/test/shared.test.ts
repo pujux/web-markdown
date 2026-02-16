@@ -98,9 +98,33 @@ describe("next shared routing", () => {
       },
     });
 
+    const appRouterFlight = new Request("https://example.com/docs", {
+      method: "GET",
+      headers: {
+        Accept: "text/x-component",
+        RSC: "1",
+        "Next-Router-State-Tree": '["",{}]',
+      },
+    });
+
     expect(shouldRewriteRequestToMarkdownEndpoint(htmlGet, options)).toBe(true);
     expect(shouldRewriteRequestToMarkdownEndpoint(excluded, options)).toBe(true);
     expect(shouldRewriteRequestToMarkdownEndpoint(apiPath, options)).toBe(false);
+    expect(shouldRewriteRequestToMarkdownEndpoint(appRouterFlight, options)).toBe(false);
+  });
+
+  it("skips app-router flight requests for markdown rewrite checks", () => {
+    const options = normalizeRoutingOptions();
+
+    const flightMarkdown = new Request("https://example.com/docs", {
+      method: "GET",
+      headers: {
+        Accept: "text/markdown, text/x-component",
+        RSC: "1",
+      },
+    });
+
+    expect(shouldRewriteRequestToMarkdown(flightMarkdown, options)).toBe(false);
   });
 
   it("adds Accept to vary when missing", () => {
