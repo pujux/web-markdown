@@ -74,6 +74,7 @@ app.get("/", (_req, res) => {
       <p>This app demonstrates markdown negotiation and fallback behavior.</p>
       <ul>
         <li><a href="/guide">/guide</a> front matter + canonical/base URL handling.</li>
+        <li><a href="/seo">/seo</a> OpenGraph/Twitter SEO metadata fallback into front matter.</li>
         <li><a href="/table">/table</a> conversion quality for lists/code/tables/images.</li>
         <li><a href="/hooks">/hooks</a> rewriteLink/rewriteImage hooks.</li>
         <li><a href="/not-markdown">/not-markdown</a> excluded path (always HTML).</li>
@@ -109,6 +110,30 @@ app.get("/guide", (_req, res) => {
       <p><img src="./hero.png" alt="Hero image" /></p>
     </main>
     <footer>Footer is removed in content mode.</footer>
+  </body>
+</html>`);
+});
+
+app.get("/seo", (_req, res) => {
+  res.type("html").send(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta property="og:title" content="Express SEO via OpenGraph" />
+    <meta property="og:description" content="SEO metadata fallback demo using OpenGraph tags." />
+    <meta property="og:url" content="https://docs.example.test/express/seo#overview" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:description" content="Twitter description fallback is also supported." />
+    <meta name="robots" content="index,follow,max-snippet:-1" />
+  </head>
+  <body>
+    <main>
+      <h1>SEO metadata demo</h1>
+      <p>
+        This page intentionally omits title/canonical/description standard tags so markdown front
+        matter must be populated from OpenGraph and Twitter metadata.
+      </p>
+      <p><a href="/guide">Back to guide</a></p>
+    </main>
   </body>
 </html>`);
 });

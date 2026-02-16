@@ -11,6 +11,9 @@ export default function HomePage() {
           <a href="/rich">/rich</a> conversion quality + front matter metadata.
         </li>
         <li>
+          <a href="/seo">/seo</a> OpenGraph/Twitter SEO metadata fallback into front matter.
+        </li>
+        <li>
           <a href="/hooks">/hooks</a> rewriteLink/rewriteImage hook demo.
         </li>
         <li>
