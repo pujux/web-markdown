@@ -147,7 +147,7 @@ describe("transformFetchResponse", () => {
     });
 
     expect(onObservation).toHaveBeenCalledTimes(1);
-    expect(onObservation.mock.calls[0][0]).toMatchObject({
+    expect(onObservation.mock.calls[0]?.[0]).toMatchObject({
       transformed: true,
     });
   });
