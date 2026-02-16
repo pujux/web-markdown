@@ -57,13 +57,23 @@ function prepareUpstreamHeaders(
 ): Headers {
   const headers = new Headers(incoming);
   headers.set("accept", upstreamAcceptHeader);
+  headers.set("accept-encoding", "identity");
   headers.set(bypassHeaderName, bypassHeaderValue);
   return headers;
 }
 
-function stripVaryHeaders(response: Response): Response {
+function sanitizeUpstreamHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
+  const hadContentEncoding = headers.has("content-encoding");
+
   headers.delete("vary");
+
+  if (hadContentEncoding) {
+    headers.delete("content-encoding");
+    headers.delete("content-length");
+    headers.delete("etag");
+  }
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -103,7 +113,7 @@ export async function handleInternalMarkdownRequest(
     redirect: "manual",
   });
 
-  const upstreamResponse = stripVaryHeaders(await fetchImpl(upstreamRequest));
+  const upstreamResponse = sanitizeUpstreamHeaders(await fetchImpl(upstreamRequest));
 
   const markdownRequest = new Request(requestUrl.toString(), {
     method: request.method,

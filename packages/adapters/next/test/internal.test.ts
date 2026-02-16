@@ -16,6 +16,7 @@ describe("handleInternalMarkdownRequest", () => {
       const request = input instanceof Request ? input : new Request(String(input));
       expect(request.url).toBe("https://example.com/docs");
       expect(request.headers.get("accept")).toContain("text/html");
+      expect(request.headers.get("accept-encoding")).toBe("identity");
       expect(request.headers.get("x-web-markdown-bypass")).toBe("1");
 
       return new Response("<html><body><main><h1>Hello</h1></main></body></html>", {
@@ -77,6 +78,7 @@ describe("handleInternalMarkdownRequest", () => {
         status: 200,
         headers: {
           "Content-Type": "text/html; charset=utf-8",
+          ETag: '"private-source"',
         },
       });
     });
@@ -99,8 +101,49 @@ describe("handleInternalMarkdownRequest", () => {
     expect(response.status).toBe(200);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(response.headers.get("content-type")).toContain("text/html");
+    expect(response.headers.get("etag")).toBe('"private-source"');
     expect(response.headers.get("vary")).toContain("Accept");
     expect(response.headers.get("x-markdown-transformed")).toBe("0");
     expect(await response.text()).toContain("<main><h1>Private</h1></main>");
+  });
+
+  it("drops stale encoding headers for passthrough responses", async () => {
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const request = input instanceof Request ? input : new Request(String(input));
+      expect(request.url).toBe("https://example.com/docs");
+      expect(request.headers.get("accept-encoding")).toBe("identity");
+
+      return new Response("<html><body><main><h1>Docs</h1></main></body></html>", {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Encoding": "gzip",
+          "Content-Length": "48",
+          ETag: '"gzip-representation"',
+        },
+      });
+    });
+
+    const response = await handleInternalMarkdownRequest(
+      new Request("https://example.com/docs", {
+        headers: {
+          Accept: "text/html,application/xhtml+xml",
+        },
+      }),
+      {
+        converter,
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        debugHeaders: true,
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/html");
+    expect(response.headers.get("content-encoding")).toBeNull();
+    expect(response.headers.get("content-length")).toBeNull();
+    expect(response.headers.get("etag")).toBeNull();
+    expect(response.headers.get("vary")).toContain("Accept");
+    expect(response.headers.get("x-markdown-transformed")).toBe("0");
+    expect(await response.text()).toContain("<main><h1>Docs</h1></main>");
   });
 });
