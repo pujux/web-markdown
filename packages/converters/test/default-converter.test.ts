@@ -65,9 +65,12 @@ describe("createDefaultConverter", () => {
       rewriteImage: (url) => `${url}?img=1`,
     });
 
-    const markdown = await converter.convert('<html><body><a href="/a">A</a><img src="/img.png" alt="I" /></body></html>', {
-      requestUrl: "https://example.com/page",
-    });
+    const markdown = await converter.convert(
+      '<html><body><a href="/a">A</a><img src="/img.png" alt="I" /></body></html>',
+      {
+        requestUrl: "https://example.com/page",
+      },
+    );
 
     expect(markdown).toContain("[A](https://example.com/a?src=md)");
     expect(markdown).toContain("![I](https://example.com/img.png?img=1)");
@@ -79,10 +82,13 @@ describe("createDefaultConverter", () => {
       addFrontMatter: true,
     });
 
-    const markdown = await converter.convert("<html><body><main><p>Hello</p></main></body></html>", {
-      requestUrl: "https://request.example.com/a#ignore",
-      responseUrl: "https://response.example.com/b?q=1#ignore",
-    });
+    const markdown = await converter.convert(
+      "<html><body><main><p>Hello</p></main></body></html>",
+      {
+        requestUrl: "https://request.example.com/a#ignore",
+        responseUrl: "https://response.example.com/b?q=1#ignore",
+      },
+    );
 
     expect(markdown).toContain("url: https://response.example.com/b?q=1");
     expect(markdown).not.toContain("#ignore");

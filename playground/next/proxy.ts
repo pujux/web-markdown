@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { buildInternalRewriteUrl, normalizeRoutingOptions, shouldRewriteRequestToMarkdownEndpoint } from "@web-markdown/adapters-next";
+import {
+  buildInternalRewriteUrl,
+  normalizeRoutingOptions,
+  shouldRewriteRequestToMarkdownEndpoint,
+} from "@web-markdown/adapters-next";
 
 const routing = normalizeRoutingOptions({
   include: ["/**"],

@@ -1,32 +1,28 @@
-import type { HtmlToMarkdownConverter, MarkdownTransformContext } from '@web-markdown/core';
-import { parseHTML } from 'linkedom';
-import { NodeHtmlMarkdown } from 'node-html-markdown';
+import type { HtmlToMarkdownConverter, MarkdownTransformContext } from "@web-markdown/core";
+import { parseHTML } from "linkedom";
+import { NodeHtmlMarkdown } from "node-html-markdown";
 
-import { hardenContentTree, pickContentRoot } from './content-extractor';
-import { buildFrontMatter } from './frontmatter';
-import type { ConversionMetadata, DefaultConverterOptions, UrlRewriteContext } from './types';
-import { normalizeDocumentUrl, resolveUrl, shouldSkipRewrite } from './url';
+import { hardenContentTree, pickContentRoot } from "./content-extractor";
+import { buildFrontMatter } from "./frontmatter";
+import type { ConversionMetadata, DefaultConverterOptions, UrlRewriteContext } from "./types";
+import { normalizeDocumentUrl, resolveUrl, shouldSkipRewrite } from "./url";
 
-const DEFAULT_FRONTMATTER_FIELDS: Required<Pick<DefaultConverterOptions, 'frontMatterFields'>>['frontMatterFields'] = [
-  'title',
-  'url',
-  'lang',
-  'description',
-  'canonical'
-];
+const DEFAULT_FRONTMATTER_FIELDS: Required<
+  Pick<DefaultConverterOptions, "frontMatterFields">
+>["frontMatterFields"] = ["title", "url", "lang", "description", "canonical"];
 
 const DEFAULT_CONTENT_MODE_STRIP = [
-  'nav',
-  'footer',
-  'aside',
-  'script',
-  'style',
-  'noscript',
-  'template',
+  "nav",
+  "footer",
+  "aside",
+  "script",
+  "style",
+  "noscript",
+  "template",
   '[role="navigation"]',
   '[aria-label*="cookie" i]',
   '[id*="cookie" i]',
-  '[class*="cookie" i]'
+  '[class*="cookie" i]',
 ];
 
 const DEFAULT_CONTENT_MIN_TEXT_LENGTH = 140;
@@ -34,18 +30,18 @@ const DEFAULT_CONTENT_MIN_TEXT_LENGTH = 140;
 const DEFAULT_OPTIONS: Required<
   Pick<
     DefaultConverterOptions,
-    'mode' | 'addFrontMatter' | 'stripSelectors' | 'frontMatterFields' | 'contentMinTextLength'
+    "mode" | "addFrontMatter" | "stripSelectors" | "frontMatterFields" | "contentMinTextLength"
   >
 > = {
-  mode: 'verbatim',
+  mode: "verbatim",
   addFrontMatter: false,
   stripSelectors: [],
   frontMatterFields: DEFAULT_FRONTMATTER_FIELDS,
-  contentMinTextLength: DEFAULT_CONTENT_MIN_TEXT_LENGTH
+  contentMinTextLength: DEFAULT_CONTENT_MIN_TEXT_LENGTH,
 };
 
 function normalizeMarkdown(markdown: string): string {
-  return markdown.replace(/\r\n/g, '\n').trimEnd() + '\n';
+  return markdown.replace(/\r\n/g, "\n").trimEnd() + "\n";
 }
 
 function getText(selector: string, document: Document): string | undefined {
@@ -60,7 +56,7 @@ function getAttribute(selector: string, attribute: string, document: Document): 
 
 function getFirstAttribute(
   selectors: readonly [selector: string, attribute: string][],
-  document: Document
+  document: Document,
 ): string | undefined {
   for (const [selector, attribute] of selectors) {
     const value = getAttribute(selector, attribute, document);
@@ -73,12 +69,16 @@ function getFirstAttribute(
 }
 
 function getDocumentLang(document: Document): string | undefined {
-  const rootLang = document.documentElement.getAttribute('lang')?.trim();
+  const rootLang = document.documentElement.getAttribute("lang")?.trim();
   if (rootLang) {
     return rootLang;
   }
 
-  const contentLanguage = getAttribute('meta[http-equiv="content-language"][content]', 'content', document);
+  const contentLanguage = getAttribute(
+    'meta[http-equiv="content-language"][content]',
+    "content",
+    document,
+  );
   if (!contentLanguage) {
     return undefined;
   }
@@ -92,16 +92,16 @@ function rewriteUrls(
   responseUrl: string | undefined,
   baseUrl: string | undefined,
   canonicalUrl: string | undefined,
-  rewriteLink: DefaultConverterOptions['rewriteLink'],
-  rewriteImage: DefaultConverterOptions['rewriteImage']
+  rewriteLink: DefaultConverterOptions["rewriteLink"],
+  rewriteImage: DefaultConverterOptions["rewriteImage"],
 ): void {
   const fallbackBase = canonicalUrl ?? responseUrl ?? requestUrl;
 
-  const buildRewriteContext = (kind: 'link' | 'image', elementTag: string): UrlRewriteContext => {
+  const buildRewriteContext = (kind: "link" | "image", elementTag: string): UrlRewriteContext => {
     const context: UrlRewriteContext = {
       kind,
       requestUrl,
-      elementTag
+      elementTag,
     };
 
     if (responseUrl) {
@@ -119,8 +119,8 @@ function rewriteUrls(
     return context;
   };
 
-  for (const anchor of document.querySelectorAll('a[href]')) {
-    const original = anchor.getAttribute('href');
+  for (const anchor of document.querySelectorAll("a[href]")) {
+    const original = anchor.getAttribute("href");
     if (!original || shouldSkipRewrite(original)) {
       continue;
     }
@@ -129,14 +129,14 @@ function rewriteUrls(
     const candidate = absolute ?? original;
 
     const rewritten = rewriteLink
-      ? rewriteLink(candidate, buildRewriteContext('link', 'a'))
+      ? rewriteLink(candidate, buildRewriteContext("link", "a"))
       : candidate;
 
-    anchor.setAttribute('href', rewritten);
+    anchor.setAttribute("href", rewritten);
   }
 
-  for (const image of document.querySelectorAll('img[src]')) {
-    const original = image.getAttribute('src');
+  for (const image of document.querySelectorAll("img[src]")) {
+    const original = image.getAttribute("src");
     if (!original || shouldSkipRewrite(original)) {
       continue;
     }
@@ -145,29 +145,29 @@ function rewriteUrls(
     const candidate = absolute ?? original;
 
     const rewritten = rewriteImage
-      ? rewriteImage(candidate, buildRewriteContext('image', 'img'))
+      ? rewriteImage(candidate, buildRewriteContext("image", "img"))
       : candidate;
 
-    image.setAttribute('src', rewritten);
+    image.setAttribute("src", rewritten);
   }
 }
 
 function gatherMetadata(
   document: Document,
   requestUrl: string,
-  responseUrl?: string
+  responseUrl?: string,
 ): { metadata: ConversionMetadata; baseUrl?: string; canonicalUrl?: string } {
   const normalizedRequestUrl = normalizeDocumentUrl(requestUrl) ?? requestUrl;
   const normalizedResponseUrl = normalizeDocumentUrl(responseUrl);
   const urlFallback = normalizedResponseUrl ?? normalizedRequestUrl;
-  const baseHref = getAttribute('base[href]', 'href', document);
+  const baseHref = getAttribute("base[href]", "href", document);
   const canonicalHref = getFirstAttribute(
     [
-      ['link[rel~="canonical"][href]', 'href'],
-      ['meta[property="og:url"][content]', 'content'],
-      ['meta[name="twitter:url"][content]', 'content']
+      ['link[rel~="canonical"][href]', "href"],
+      ['meta[property="og:url"][content]', "content"],
+      ['meta[name="twitter:url"][content]', "content"],
     ],
-    document
+    document,
   );
 
   const baseUrl = resolveUrl(baseHref, urlFallback);
@@ -175,18 +175,18 @@ function gatherMetadata(
   const bestUrl = canonicalUrl ?? normalizedResponseUrl ?? normalizedRequestUrl;
 
   const metadata: ConversionMetadata = {
-    url: bestUrl
+    url: bestUrl,
   };
 
   const title =
-    getText('title', document) ??
-    getAttribute('meta[property="og:title"][content]', 'content', document) ??
-    getAttribute('meta[name="twitter:title"][content]', 'content', document) ??
-    getText('h1', document);
+    getText("title", document) ??
+    getAttribute('meta[property="og:title"][content]', "content", document) ??
+    getAttribute('meta[name="twitter:title"][content]', "content", document) ??
+    getText("h1", document);
   const description =
-    getAttribute('meta[name="description"]', 'content', document) ??
-    getAttribute('meta[property="og:description"][content]', 'content', document) ??
-    getAttribute('meta[name="twitter:description"][content]', 'content', document);
+    getAttribute('meta[name="description"]', "content", document) ??
+    getAttribute('meta[property="og:description"][content]', "content", document) ??
+    getAttribute('meta[name="twitter:description"][content]', "content", document);
   const lang = getDocumentLang(document);
 
   if (title) {
@@ -206,7 +206,7 @@ function gatherMetadata(
   }
 
   const result: { metadata: ConversionMetadata; baseUrl?: string; canonicalUrl?: string } = {
-    metadata
+    metadata,
   };
 
   if (baseUrl) {
@@ -230,9 +230,9 @@ function applyStripSelectors(document: Document, selectors: string[]): void {
 
 function renderMarkdown(html: string, markdownOptions?: Record<string, unknown>): string {
   const converter = new NodeHtmlMarkdown({
-    bulletMarker: '-',
-    codeFence: '```',
-    ...markdownOptions
+    bulletMarker: "-",
+    codeFence: "```",
+    ...markdownOptions,
   });
 
   return converter.translate(html);
@@ -240,10 +240,10 @@ function renderMarkdown(html: string, markdownOptions?: Record<string, unknown>)
 
 function buildMarkdownHtml(
   document: Document,
-  mode: DefaultConverterOptions['mode'],
-  contentMinTextLength: number
+  mode: DefaultConverterOptions["mode"],
+  contentMinTextLength: number,
 ): string {
-  if (mode !== 'content') {
+  if (mode !== "content") {
     return document.body?.innerHTML ?? document.documentElement.innerHTML;
   }
 
@@ -253,18 +253,18 @@ function buildMarkdownHtml(
 }
 
 export class DefaultHtmlToMarkdownConverter implements HtmlToMarkdownConverter {
-  readonly name = '@web-markdown/converters';
-  readonly version = '0.1.0';
+  readonly name = "@web-markdown/converters";
+  readonly version = "0.1.0";
 
   private readonly options: Required<
     Pick<
       DefaultConverterOptions,
-      'mode' | 'addFrontMatter' | 'stripSelectors' | 'frontMatterFields' | 'contentMinTextLength'
+      "mode" | "addFrontMatter" | "stripSelectors" | "frontMatterFields" | "contentMinTextLength"
     >
   > &
     Omit<
       DefaultConverterOptions,
-      'mode' | 'addFrontMatter' | 'stripSelectors' | 'frontMatterFields' | 'contentMinTextLength'
+      "mode" | "addFrontMatter" | "stripSelectors" | "frontMatterFields" | "contentMinTextLength"
     >;
 
   constructor(options: DefaultConverterOptions = {}) {
@@ -273,7 +273,7 @@ export class DefaultHtmlToMarkdownConverter implements HtmlToMarkdownConverter {
       ...options,
       stripSelectors: options.stripSelectors ?? DEFAULT_OPTIONS.stripSelectors,
       frontMatterFields: options.frontMatterFields ?? DEFAULT_FRONTMATTER_FIELDS,
-      contentMinTextLength: options.contentMinTextLength ?? DEFAULT_CONTENT_MIN_TEXT_LENGTH
+      contentMinTextLength: options.contentMinTextLength ?? DEFAULT_CONTENT_MIN_TEXT_LENGTH,
     };
   }
 
@@ -283,12 +283,12 @@ export class DefaultHtmlToMarkdownConverter implements HtmlToMarkdownConverter {
     const { metadata, baseUrl, canonicalUrl } = gatherMetadata(
       document,
       context.requestUrl,
-      context.responseUrl
+      context.responseUrl,
     );
 
     const selectors = [
       ...this.options.stripSelectors,
-      ...(this.options.mode === 'content' ? DEFAULT_CONTENT_MODE_STRIP : [])
+      ...(this.options.mode === "content" ? DEFAULT_CONTENT_MODE_STRIP : []),
     ];
 
     applyStripSelectors(document, selectors);
@@ -299,12 +299,12 @@ export class DefaultHtmlToMarkdownConverter implements HtmlToMarkdownConverter {
       baseUrl,
       canonicalUrl,
       this.options.rewriteLink,
-      this.options.rewriteImage
+      this.options.rewriteImage,
     );
 
     const markdownBody = renderMarkdown(
       buildMarkdownHtml(document, this.options.mode, this.options.contentMinTextLength),
-      this.options.markdownOptions
+      this.options.markdownOptions,
     );
 
     if (!this.options.addFrontMatter) {
@@ -316,6 +316,8 @@ export class DefaultHtmlToMarkdownConverter implements HtmlToMarkdownConverter {
   }
 }
 
-export function createDefaultConverter(options: DefaultConverterOptions = {}): HtmlToMarkdownConverter {
+export function createDefaultConverter(
+  options: DefaultConverterOptions = {},
+): HtmlToMarkdownConverter {
   return new DefaultHtmlToMarkdownConverter(options);
 }

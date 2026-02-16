@@ -27,9 +27,12 @@ describe("withNextMarkdownRouteHandler", () => {
       },
     );
 
-    const out = await handler(new Request("https://example.com", { headers: { Accept: "text/markdown" } }), {
-      params: {},
-    });
+    const out = await handler(
+      new Request("https://example.com", { headers: { Accept: "text/markdown" } }),
+      {
+        params: {},
+      },
+    );
 
     expect(out.status).toBe(200);
     expect(out.headers.get("content-type")).toContain("text/markdown");
@@ -53,9 +56,12 @@ describe("withNextMarkdownRouteHandler", () => {
       },
     );
 
-    const out = await handler(new Request("https://example.com", { headers: { Accept: "text/html,*/*" } }), {
-      params: {},
-    });
+    const out = await handler(
+      new Request("https://example.com", { headers: { Accept: "text/html,*/*" } }),
+      {
+        params: {},
+      },
+    );
 
     expect(out.headers.get("content-type")).toContain("text/html");
     expect(out.headers.get("x-markdown-transformed")).toBe("0");
@@ -63,14 +69,20 @@ describe("withNextMarkdownRouteHandler", () => {
   });
 
   it("passes through non-html responses", async () => {
-    const handler = withNextMarkdownRouteHandler(async () => new Response('{"ok":true}', { headers: { "Content-Type": "application/json" } }), {
-      converter,
-      debugHeaders: true,
-    });
+    const handler = withNextMarkdownRouteHandler(
+      async () => new Response('{"ok":true}', { headers: { "Content-Type": "application/json" } }),
+      {
+        converter,
+        debugHeaders: true,
+      },
+    );
 
-    const out = await handler(new Request("https://example.com", { headers: { Accept: "text/markdown" } }), {
-      params: {},
-    });
+    const out = await handler(
+      new Request("https://example.com", { headers: { Accept: "text/markdown" } }),
+      {
+        params: {},
+      },
+    );
 
     expect(out.headers.get("content-type")).toContain("application/json");
     expect(out.headers.get("x-markdown-transformed")).toBe("0");
@@ -78,14 +90,20 @@ describe("withNextMarkdownRouteHandler", () => {
   });
 
   it("skips redirects", async () => {
-    const handler = withNextMarkdownRouteHandler(async () => new Response(null, { status: 302, headers: { Location: "/next" } }), {
-      converter,
-      debugHeaders: true,
-    });
+    const handler = withNextMarkdownRouteHandler(
+      async () => new Response(null, { status: 302, headers: { Location: "/next" } }),
+      {
+        converter,
+        debugHeaders: true,
+      },
+    );
 
-    const out = await handler(new Request("https://example.com", { headers: { Accept: "text/markdown" } }), {
-      params: {},
-    });
+    const out = await handler(
+      new Request("https://example.com", { headers: { Accept: "text/markdown" } }),
+      {
+        params: {},
+      },
+    );
 
     expect(out.status).toBe(302);
     expect(out.headers.get("location")).toBe("/next");
@@ -104,7 +122,10 @@ describe("withNextMarkdownRouteHandler", () => {
     });
 
     const context = { slug: "abc" };
-    const out = await handler(new Request("https://example.com", { headers: { Accept: "text/markdown" } }), context);
+    const out = await handler(
+      new Request("https://example.com", { headers: { Accept: "text/markdown" } }),
+      context,
+    );
 
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith(expect.any(Request), context);

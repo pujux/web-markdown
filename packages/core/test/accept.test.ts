@@ -21,7 +21,9 @@ describe("acceptsMarkdown", () => {
   });
 
   it("uses the highest q value for duplicates", () => {
-    expect(acceptsMarkdown(new Headers({ Accept: "text/markdown;q=0, text/markdown;q=0.6" }))).toBe(true);
+    expect(acceptsMarkdown(new Headers({ Accept: "text/markdown;q=0, text/markdown;q=0.6" }))).toBe(
+      true,
+    );
   });
 
   it("accepts header records", () => {

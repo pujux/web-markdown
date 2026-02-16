@@ -1,6 +1,13 @@
-import type { RequestHandler, Request as ExpressRequest, Response as ExpressResponse } from "express";
+import type {
+  RequestHandler,
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from "express";
 
-import { transformFetchResponse, type TransformFetchResponseOptions } from "@web-markdown/transform-fetch";
+import {
+  transformFetchResponse,
+  type TransformFetchResponseOptions,
+} from "@web-markdown/transform-fetch";
 
 export type ExpressPathPattern = string | RegExp | ((pathname: string) => boolean);
 
@@ -29,7 +36,9 @@ function headerValueToString(value: string | number | readonly string[]): string
   return String(value);
 }
 
-function expressHeadersToFetchHeaders(headers: ExpressResponse["getHeaders"] extends () => infer T ? T : never): Headers {
+function expressHeadersToFetchHeaders(
+  headers: ExpressResponse["getHeaders"] extends () => infer T ? T : never,
+): Headers {
   const out = new Headers();
 
   for (const [name, value] of Object.entries(headers)) {
@@ -134,7 +143,10 @@ function pathMatchesAny(pathname: string, patterns: ExpressPathPattern[]): boole
   return patterns.some((pattern) => pathMatchesPattern(pathname, pattern));
 }
 
-function getPathnameForRequest(req: ExpressRequest, options: ExpressMarkdownMiddlewareOptions): string {
+function getPathnameForRequest(
+  req: ExpressRequest,
+  options: ExpressMarkdownMiddlewareOptions,
+): string {
   try {
     const requestUrl = options.getRequestUrl?.(req) ?? defaultRequestUrl(req);
     return normalizePathname(new URL(requestUrl).pathname);
@@ -145,7 +157,10 @@ function getPathnameForRequest(req: ExpressRequest, options: ExpressMarkdownMidd
   }
 }
 
-function shouldTransformPathname(pathname: string, options: ExpressMarkdownMiddlewareOptions): boolean {
+function shouldTransformPathname(
+  pathname: string,
+  options: ExpressMarkdownMiddlewareOptions,
+): boolean {
   if (options.exclude && pathMatchesAny(pathname, options.exclude)) {
     return false;
   }
@@ -260,7 +275,9 @@ async function finalizeTransform(
   };
 }
 
-export function createExpressMarkdownMiddleware(options: ExpressMarkdownMiddlewareOptions): RequestHandler {
+export function createExpressMarkdownMiddleware(
+  options: ExpressMarkdownMiddlewareOptions,
+): RequestHandler {
   return (req, res, next) => {
     const pathname = getPathnameForRequest(req, options);
     if (!shouldTransformPathname(pathname, options)) {
@@ -306,7 +323,11 @@ export function createExpressMarkdownMiddleware(options: ExpressMarkdownMiddlewa
       };
     }
 
-    res.write = ((chunk: unknown, encoding?: BufferEncoding, callback?: (error?: Error) => void) => {
+    res.write = ((
+      chunk: unknown,
+      encoding?: BufferEncoding,
+      callback?: (error?: Error) => void,
+    ) => {
       if (!captureEnabled) {
         return originalWrite(chunk as never, encoding as never, callback as never);
       }

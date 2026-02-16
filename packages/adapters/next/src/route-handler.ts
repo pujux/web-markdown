@@ -1,4 +1,7 @@
-import { transformFetchResponse, type TransformFetchResponseOptions } from "@web-markdown/transform-fetch";
+import {
+  transformFetchResponse,
+  type TransformFetchResponseOptions,
+} from "@web-markdown/transform-fetch";
 
 export type NextMarkdownRouteHandlerOptions = TransformFetchResponseOptions;
 
@@ -7,7 +10,9 @@ export type NextRouteHandler<TRequest extends Request = Request, TContext = unkn
   context: TContext,
 ) => Response | Promise<Response>;
 
-function toTransformOptions(options: NextMarkdownRouteHandlerOptions): TransformFetchResponseOptions {
+function toTransformOptions(
+  options: NextMarkdownRouteHandlerOptions,
+): TransformFetchResponseOptions {
   const transformOptions: TransformFetchResponseOptions = {
     converter: options.converter,
   };
@@ -31,11 +36,18 @@ function toTransformOptions(options: NextMarkdownRouteHandlerOptions): Transform
   return transformOptions;
 }
 
-export function transformNextResponse(request: Request, response: Response, options: NextMarkdownRouteHandlerOptions): Promise<Response> {
+export function transformNextResponse(
+  request: Request,
+  response: Response,
+  options: NextMarkdownRouteHandlerOptions,
+): Promise<Response> {
   return transformFetchResponse(request, response, toTransformOptions(options));
 }
 
-export function withNextMarkdownRouteHandler<TRequest extends Request = Request, TContext = unknown>(
+export function withNextMarkdownRouteHandler<
+  TRequest extends Request = Request,
+  TContext = unknown,
+>(
   handler: NextRouteHandler<TRequest, TContext>,
   options: NextMarkdownRouteHandlerOptions,
 ): NextRouteHandler<TRequest, TContext> {

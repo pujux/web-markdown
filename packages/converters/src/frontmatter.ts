@@ -1,10 +1,10 @@
-import { stringify } from 'yaml';
+import { stringify } from "yaml";
 
-import type { ConversionMetadata, DefaultConverterOptions } from './types';
+import type { ConversionMetadata, DefaultConverterOptions } from "./types";
 
 export function buildFrontMatter(
   metadata: ConversionMetadata,
-  fields: Required<Pick<DefaultConverterOptions, 'frontMatterFields'>>['frontMatterFields']
+  fields: Required<Pick<DefaultConverterOptions, "frontMatterFields">>["frontMatterFields"],
 ): string {
   const ordered: ConversionMetadata = {};
 
@@ -18,7 +18,7 @@ export function buildFrontMatter(
   }
 
   if (Object.keys(ordered).length === 0) {
-    return '';
+    return "";
   }
 
   const yaml = stringify(ordered).trimEnd();

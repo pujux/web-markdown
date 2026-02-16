@@ -27,7 +27,8 @@ const DEFAULT_BYPASS_HEADER_VALUE = "1";
 
 const DEFAULT_EXCLUDE_PREFIXES = ["/_next", "/api"];
 const DEFAULT_EXCLUDE_EXACT = ["/favicon.ico", "/robots.txt", "/sitemap.xml", "/manifest.json"];
-const ASSET_PATH_PATTERN = /\.(?:avif|bmp|css|gif|ico|jpeg|jpg|js|json|map|mjs|png|svg|txt|webp|woff|woff2|ttf|eot|otf|xml|pdf|zip)$/i;
+const ASSET_PATH_PATTERN =
+  /\.(?:avif|bmp|css|gif|ico|jpeg|jpg|js|json|map|mjs|png|svg|txt|webp|woff|woff2|ttf|eot|otf|xml|pdf|zip)$/i;
 
 function normalizePathname(pathname: string): string {
   if (!pathname) {
@@ -106,7 +107,9 @@ function isDefaultExcluded(pathname: string): boolean {
   return ASSET_PATH_PATTERN.test(pathname);
 }
 
-export function normalizeRoutingOptions(options: NextMarkdownRoutingOptions = {}): NormalizedNextMarkdownRoutingOptions {
+export function normalizeRoutingOptions(
+  options: NextMarkdownRoutingOptions = {},
+): NormalizedNextMarkdownRoutingOptions {
   return {
     include: options.include ?? [],
     exclude: options.exclude ?? [],
@@ -117,7 +120,10 @@ export function normalizeRoutingOptions(options: NextMarkdownRoutingOptions = {}
   };
 }
 
-export function shouldRoutePathToMarkdownEndpoint(pathname: string, options: NormalizedNextMarkdownRoutingOptions): boolean {
+export function shouldRoutePathToMarkdownEndpoint(
+  pathname: string,
+  options: NormalizedNextMarkdownRoutingOptions,
+): boolean {
   const normalizedPath = normalizePathname(pathname);
 
   if (pathStartsWithPrefix(normalizedPath, options.internalPath)) {
@@ -131,7 +137,10 @@ export function shouldRoutePathToMarkdownEndpoint(pathname: string, options: Nor
   return true;
 }
 
-export function shouldServeMarkdownForPath(pathname: string, options: NormalizedNextMarkdownRoutingOptions): boolean {
+export function shouldServeMarkdownForPath(
+  pathname: string,
+  options: NormalizedNextMarkdownRoutingOptions,
+): boolean {
   const normalizedPath = normalizePathname(pathname);
 
   if (!shouldRoutePathToMarkdownEndpoint(normalizedPath, options)) {
@@ -194,7 +203,10 @@ export function shouldRewriteRequestToMarkdownEndpoint(
   return shouldRoutePathToMarkdownEndpoint(url.pathname, options);
 }
 
-export function buildInternalRewriteUrl(requestUrl: string, options: NormalizedNextMarkdownRoutingOptions): URL {
+export function buildInternalRewriteUrl(
+  requestUrl: string,
+  options: NormalizedNextMarkdownRoutingOptions,
+): URL {
   const original = new URL(requestUrl);
   const internal = new URL(options.internalPath, original.origin);
   internal.searchParams.set(options.sourceQueryParam, `${original.pathname}${original.search}`);

@@ -1,12 +1,12 @@
-const PRIORITY_SELECTORS = ['main', 'article', '[role="main"]', '#main', '#content', '.content'];
-const STRUCTURAL_SELECTORS = ['article', 'main', '[role="main"]', 'section', 'div'];
-const CONTENT_NODE_SELECTORS = ['section', 'div', 'article', 'aside', 'nav', 'header', 'footer'];
+const PRIORITY_SELECTORS = ["main", "article", '[role="main"]', "#main", "#content", ".content"];
+const STRUCTURAL_SELECTORS = ["article", "main", '[role="main"]', "section", "div"];
+const CONTENT_NODE_SELECTORS = ["section", "div", "article", "aside", "nav", "header", "footer"];
 const BOILERPLATE_HINT_PATTERN =
   /(nav|menu|footer|header|sidebar|breadcrumb|cookie|consent|promo|advert|social|share|related|subscribe|newsletter)/i;
 const HIDDEN_STYLE_PATTERN = /(display\s*:\s*none|visibility\s*:\s*hidden)/i;
 
 function normalizedText(value: string | null | undefined): string {
-  return (value ?? '').replace(/\s+/g, ' ').trim();
+  return (value ?? "").replace(/\s+/g, " ").trim();
 }
 
 function textLength(element: Element): number {
@@ -16,7 +16,7 @@ function textLength(element: Element): number {
 function linkTextLength(element: Element): number {
   let total = 0;
 
-  for (const link of element.querySelectorAll('a')) {
+  for (const link of element.querySelectorAll("a")) {
     total += normalizedText(link.textContent).length;
   }
 
@@ -37,22 +37,22 @@ function hasBoilerplateHint(element: Element): boolean {
     return true;
   }
 
-  const className = element.getAttribute('class');
+  const className = element.getAttribute("class");
   if (className && BOILERPLATE_HINT_PATTERN.test(className)) {
     return true;
   }
 
-  const id = element.getAttribute('id');
+  const id = element.getAttribute("id");
   if (id && BOILERPLATE_HINT_PATTERN.test(id)) {
     return true;
   }
 
-  const role = element.getAttribute('role');
+  const role = element.getAttribute("role");
   if (role && BOILERPLATE_HINT_PATTERN.test(role)) {
     return true;
   }
 
-  const ariaLabel = element.getAttribute('aria-label');
+  const ariaLabel = element.getAttribute("aria-label");
   if (ariaLabel && BOILERPLATE_HINT_PATTERN.test(ariaLabel)) {
     return true;
   }
@@ -67,11 +67,11 @@ function scoreContentCandidate(element: Element): number {
     return Number.NEGATIVE_INFINITY;
   }
 
-  const paragraphCount = element.querySelectorAll('p').length;
-  const headingCount = element.querySelectorAll('h1, h2, h3').length;
-  const listCount = element.querySelectorAll('ul, ol').length;
-  const tableCount = element.querySelectorAll('table').length;
-  const preCount = element.querySelectorAll('pre').length;
+  const paragraphCount = element.querySelectorAll("p").length;
+  const headingCount = element.querySelectorAll("h1, h2, h3").length;
+  const listCount = element.querySelectorAll("ul, ol").length;
+  const tableCount = element.querySelectorAll("table").length;
+  const preCount = element.querySelectorAll("pre").length;
   const density = linkDensity(element);
 
   let score = plainTextLength;
@@ -94,8 +94,8 @@ function removeHiddenNodes(root: Element | Document): void {
     node.remove();
   }
 
-  for (const node of root.querySelectorAll('[style]')) {
-    const style = node.getAttribute('style');
+  for (const node of root.querySelectorAll("[style]")) {
+    const style = node.getAttribute("style");
     if (!style || !HIDDEN_STYLE_PATTERN.test(style)) {
       continue;
     }
@@ -105,14 +105,14 @@ function removeHiddenNodes(root: Element | Document): void {
 }
 
 function pruneBoilerplateInside(root: Element): void {
-  for (const node of root.querySelectorAll(CONTENT_NODE_SELECTORS.join(', '))) {
+  for (const node of root.querySelectorAll(CONTENT_NODE_SELECTORS.join(", "))) {
     if (!hasBoilerplateHint(node)) {
       continue;
     }
 
     const density = linkDensity(node);
     const length = textLength(node);
-    const links = node.querySelectorAll('a').length;
+    const links = node.querySelectorAll("a").length;
 
     if (density >= 0.5 || links >= 4 || length < 220) {
       node.remove();
@@ -135,7 +135,7 @@ export function pickContentRoot(document: Document, minTextLength: number): Elem
   let bestElement: Element | null = null;
   let bestScore = Number.NEGATIVE_INFINITY;
 
-  for (const candidate of document.querySelectorAll(STRUCTURAL_SELECTORS.join(', '))) {
+  for (const candidate of document.querySelectorAll(STRUCTURAL_SELECTORS.join(", "))) {
     const score = scoreContentCandidate(candidate);
     if (score <= bestScore) {
       continue;

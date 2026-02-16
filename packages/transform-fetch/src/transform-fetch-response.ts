@@ -8,7 +8,11 @@ import {
 } from "@web-markdown/core";
 
 import { readBodyTextWithLimit } from "./body";
-import type { TransformFallbackReason, TransformFetchResponseOptions, TransformObservation } from "./types";
+import type {
+  TransformFallbackReason,
+  TransformFetchResponseOptions,
+  TransformObservation,
+} from "./types";
 
 const DEFAULT_MAX_HTML_BYTES = 3 * 1024 * 1024;
 
@@ -52,7 +56,11 @@ function finalizeObservation(
   options.onObservation?.(observation);
 }
 
-function withDebugHeaders(headers: Headers, options: TransformFetchResponseOptions, transformed: boolean): void {
+function withDebugHeaders(
+  headers: Headers,
+  options: TransformFetchResponseOptions,
+  transformed: boolean,
+): void {
   if (!options.debugHeaders) {
     return;
   }
@@ -77,7 +85,11 @@ function passthrough(
   return cloneWithHeaders(response, headers);
 }
 
-export async function transformFetchResponse(request: Request, response: Response, options: TransformFetchResponseOptions): Promise<Response> {
+export async function transformFetchResponse(
+  request: Request,
+  response: Response,
+  options: TransformFetchResponseOptions,
+): Promise<Response> {
   const startedAt = nowMs();
   const maxHtmlBytes = options.maxHtmlBytes ?? DEFAULT_MAX_HTML_BYTES;
   const oversizeBehavior = options.oversizeBehavior ?? "passthrough";
@@ -121,12 +133,21 @@ export async function transformFetchResponse(request: Request, response: Respons
       });
     }
 
-    return passthrough(response, passthroughHeaders, options, startedAt, "too-large", bodyResult.bytes);
+    return passthrough(
+      response,
+      passthroughHeaders,
+      options,
+      startedAt,
+      "too-large",
+      bodyResult.bytes,
+    );
   }
 
   const htmlText = bodyResult.text;
   const htmlBytes = bodyResult.bytes;
-  const responseIsHtml = contentType ? isHtmlContentType(contentType) : isLikelyHtmlDocument(htmlText);
+  const responseIsHtml = contentType
+    ? isHtmlContentType(contentType)
+    : isLikelyHtmlDocument(htmlText);
 
   if (!responseIsHtml) {
     return passthrough(response, passthroughHeaders, options, startedAt, "not-html", htmlBytes);
@@ -154,7 +175,15 @@ export async function transformFetchResponse(request: Request, response: Respons
     withDebugHeaders(headers, options, true);
 
     const markdownBytes = new TextEncoder().encode(markdown).byteLength;
-    finalizeObservation(options, startedAt, response.status, true, undefined, htmlBytes, markdownBytes);
+    finalizeObservation(
+      options,
+      startedAt,
+      response.status,
+      true,
+      undefined,
+      htmlBytes,
+      markdownBytes,
+    );
 
     return new Response(markdown, {
       status: response.status,
@@ -162,6 +191,13 @@ export async function transformFetchResponse(request: Request, response: Respons
       headers,
     });
   } catch {
-    return passthrough(response, passthroughHeaders, options, startedAt, "converter-error", htmlBytes);
+    return passthrough(
+      response,
+      passthroughHeaders,
+      options,
+      startedAt,
+      "converter-error",
+      htmlBytes,
+    );
   }
 }

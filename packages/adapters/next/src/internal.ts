@@ -1,8 +1,17 @@
-import { transformFetchResponse, type TransformFetchResponseOptions } from "@web-markdown/transform-fetch";
+import {
+  transformFetchResponse,
+  type TransformFetchResponseOptions,
+} from "@web-markdown/transform-fetch";
 
-import { normalizeRoutingOptions, shouldRoutePathToMarkdownEndpoint, shouldServeMarkdownForPath, type NextMarkdownRoutingOptions } from "./shared";
+import {
+  normalizeRoutingOptions,
+  shouldRoutePathToMarkdownEndpoint,
+  shouldServeMarkdownForPath,
+  type NextMarkdownRoutingOptions,
+} from "./shared";
 
-export interface NextMarkdownEndpointOptions extends NextMarkdownRoutingOptions, TransformFetchResponseOptions {
+export interface NextMarkdownEndpointOptions
+  extends NextMarkdownRoutingOptions, TransformFetchResponseOptions {
   fetchImpl?: typeof fetch;
   upstreamAcceptHeader?: string;
 }
@@ -40,7 +49,12 @@ function notFound(): Response {
   });
 }
 
-function prepareUpstreamHeaders(incoming: Headers, bypassHeaderName: string, bypassHeaderValue: string, upstreamAcceptHeader: string): Headers {
+function prepareUpstreamHeaders(
+  incoming: Headers,
+  bypassHeaderName: string,
+  bypassHeaderValue: string,
+  upstreamAcceptHeader: string,
+): Headers {
   const headers = new Headers(incoming);
   headers.set("accept", upstreamAcceptHeader);
   headers.set(bypassHeaderName, bypassHeaderValue);
@@ -56,7 +70,10 @@ function withHtmlOnlyAccept(request: Request): Request {
   });
 }
 
-export async function handleInternalMarkdownRequest(request: Request, options: NextMarkdownEndpointOptions): Promise<Response> {
+export async function handleInternalMarkdownRequest(
+  request: Request,
+  options: NextMarkdownEndpointOptions,
+): Promise<Response> {
   const routing = normalizeRoutingOptions(options);
   const requestUrl = new URL(request.url);
 
@@ -84,7 +101,11 @@ export async function handleInternalMarkdownRequest(request: Request, options: N
   });
 
   if (!shouldServeMarkdownForPath(requestUrl.pathname, routing)) {
-    return transformFetchResponse(withHtmlOnlyAccept(markdownRequest), upstreamResponse, toTransformOptions(options));
+    return transformFetchResponse(
+      withHtmlOnlyAccept(markdownRequest),
+      upstreamResponse,
+      toTransformOptions(options),
+    );
   }
 
   return transformFetchResponse(markdownRequest, upstreamResponse, toTransformOptions(options));

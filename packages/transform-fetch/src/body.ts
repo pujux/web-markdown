@@ -25,7 +25,10 @@ function concatChunks(chunks: Uint8Array[], size: number): Uint8Array {
   return output;
 }
 
-export async function readBodyTextWithLimit(response: Response, maxBytes: number): Promise<ReadBodyResult> {
+export async function readBodyTextWithLimit(
+  response: Response,
+  maxBytes: number,
+): Promise<ReadBodyResult> {
   if (!response.body) {
     return { overflow: false, text: "", bytes: 0 };
   }

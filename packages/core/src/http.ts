@@ -1,5 +1,6 @@
 const HTML_TYPE_PATTERN = /^(text\/html|application\/xhtml\+xml)\b/i;
-const HTML_START_PATTERN = /^(?:\ufeff)?\s*(?:<!doctype\s+html\b|<html\b|<head\b|<body\b|<main\b|<article\b)/i;
+const HTML_START_PATTERN =
+  /^(?:\ufeff)?\s*(?:<!doctype\s+html\b|<html\b|<head\b|<body\b|<main\b|<article\b)/i;
 
 export function isRedirectStatus(status: number): boolean {
   return status >= 300 && status < 400;

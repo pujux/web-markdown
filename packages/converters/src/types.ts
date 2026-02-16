@@ -1,9 +1,9 @@
-import type { MarkdownTransformContext } from '@web-markdown/core';
+import type { MarkdownTransformContext } from "@web-markdown/core";
 
-export type ConverterMode = 'verbatim' | 'content';
+export type ConverterMode = "verbatim" | "content";
 
 export interface UrlRewriteContext {
-  kind: 'link' | 'image';
+  kind: "link" | "image";
   requestUrl: string;
   responseUrl?: string;
   baseUrl?: string;
@@ -19,7 +19,7 @@ export interface DefaultConverterOptions {
   rewriteLink?: (url: string, ctx: UrlRewriteContext) => string;
   rewriteImage?: (url: string, ctx: UrlRewriteContext) => string;
   defaultStripSelectors?: string[];
-  frontMatterFields?: Array<'title' | 'url' | 'lang' | 'description' | 'canonical'>;
+  frontMatterFields?: Array<"title" | "url" | "lang" | "description" | "canonical">;
   markdownOptions?: Record<string, unknown>;
 }
 
@@ -40,8 +40,14 @@ export interface PreparedDocument {
 
 export interface ConverterRuntimeContext {
   options: Required<
-    Pick<DefaultConverterOptions, 'mode' | 'addFrontMatter' | 'stripSelectors' | 'frontMatterFields'>
+    Pick<
+      DefaultConverterOptions,
+      "mode" | "addFrontMatter" | "stripSelectors" | "frontMatterFields"
+    >
   > &
-    Omit<DefaultConverterOptions, 'mode' | 'addFrontMatter' | 'stripSelectors' | 'frontMatterFields'>;
+    Omit<
+      DefaultConverterOptions,
+      "mode" | "addFrontMatter" | "stripSelectors" | "frontMatterFields"
+    >;
   context: MarkdownTransformContext;
 }

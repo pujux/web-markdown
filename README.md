@@ -128,7 +128,11 @@ What it provides:
 ```ts
 // proxy.ts (Next 16+) or middleware.ts
 import { NextResponse } from "next/server";
-import { buildInternalRewriteUrl, normalizeRoutingOptions, shouldRewriteRequestToMarkdownEndpoint } from "@web-markdown/adapters-next";
+import {
+  buildInternalRewriteUrl,
+  normalizeRoutingOptions,
+  shouldRewriteRequestToMarkdownEndpoint,
+} from "@web-markdown/adapters-next";
 
 const routing = normalizeRoutingOptions({
   include: ["/docs/**"],
@@ -189,7 +193,10 @@ const options = {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const host = context.req.headers.host ?? "localhost:3000";
   const protocol = context.req.headers["x-forwarded-proto"] ?? "http";
-  const requestUrl = new URL(context.resolvedUrl ?? context.req.url ?? "/", `${protocol}://${host}`);
+  const requestUrl = new URL(
+    context.resolvedUrl ?? context.req.url ?? "/",
+    `${protocol}://${host}`,
+  );
 
   const request = new Request(requestUrl, {
     method: context.req.method ?? "GET",

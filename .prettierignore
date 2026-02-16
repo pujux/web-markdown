@@ -1,0 +1,10 @@
+node_modules
+coverage
+dist
+**/dist/
+**/.next/
+**/out/
+**/build/
+*.tsbuildinfo
+**/*.tsbuildinfo
+pnpm-lock.yaml

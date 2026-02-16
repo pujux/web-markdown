@@ -7,14 +7,17 @@ export function normalizeDocumentUrl(url: string | undefined): string | undefine
 
   try {
     const parsed = new URL(url);
-    parsed.hash = '';
+    parsed.hash = "";
     return parsed.toString();
   } catch {
     return undefined;
   }
 }
 
-export function resolveUrl(url: string | undefined, baseUrl: string | undefined): string | undefined {
+export function resolveUrl(
+  url: string | undefined,
+  baseUrl: string | undefined,
+): string | undefined {
   if (!url) {
     return undefined;
   }
@@ -24,7 +27,7 @@ export function resolveUrl(url: string | undefined, baseUrl: string | undefined)
     return undefined;
   }
 
-  if (trimmed.startsWith('#')) {
+  if (trimmed.startsWith("#")) {
     return trimmed;
   }
 
@@ -33,7 +36,7 @@ export function resolveUrl(url: string | undefined, baseUrl: string | undefined)
       return normalizeDocumentUrl(new URL(trimmed).toString());
     }
 
-    if (trimmed.startsWith('//')) {
+    if (trimmed.startsWith("//")) {
       if (!baseUrl) {
         return undefined;
       }
@@ -55,10 +58,10 @@ export function resolveUrl(url: string | undefined, baseUrl: string | undefined)
 export function shouldSkipRewrite(url: string): boolean {
   const value = url.trim().toLowerCase();
   return (
-    value.startsWith('#') ||
-    value.startsWith('mailto:') ||
-    value.startsWith('tel:') ||
-    value.startsWith('javascript:') ||
-    value.startsWith('data:')
+    value.startsWith("#") ||
+    value.startsWith("mailto:") ||
+    value.startsWith("tel:") ||
+    value.startsWith("javascript:") ||
+    value.startsWith("data:")
   );
 }

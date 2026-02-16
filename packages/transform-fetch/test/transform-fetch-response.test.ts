@@ -91,7 +91,9 @@ describe("transformFetchResponse", () => {
     const req = new Request("https://example.com", {
       headers: { Accept: "text/markdown" },
     });
-    const res = new Response(new TextEncoder().encode("<!doctype html><html><body>hi</body></html>"));
+    const res = new Response(
+      new TextEncoder().encode("<!doctype html><html><body>hi</body></html>"),
+    );
 
     const out = await transformFetchResponse(req, res, {
       converter: markdownConverter,
