@@ -9,7 +9,10 @@
       "@web-markdown/converters": ["packages/converters/src/index.ts"],
       "@web-markdown/transform-fetch": ["packages/transform-fetch/src/index.ts"],
       "@web-markdown/adapters-express": ["packages/adapters/express/src/index.ts"],
-      "@web-markdown/adapters-next": ["packages/adapters/next/src/index.ts"]
+      "@web-markdown/adapters-next": ["packages/adapters/next/src/index.ts"],
+      "@web-markdown/adapters-fastify": ["packages/adapters/fastify/src/index.ts"],
+      "@web-markdown/adapters-koa": ["packages/adapters/koa/src/index.ts"],
+      "@web-markdown/adapters-node-http": ["packages/adapters/node-http/src/index.ts"]
     },
     "strict": true,
     "declaration": true,

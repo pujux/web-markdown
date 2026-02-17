@@ -40,13 +40,16 @@ representation overhead can be removed, allowing agents to work faster and hit l
 
 ## Packages
 
-| Package                          | Description                                                                           |
-| -------------------------------- | ------------------------------------------------------------------------------------- |
-| `@web-markdown/core`             | Accept parsing, `Vary` merging, HTTP helpers, shared path matching utilities.         |
-| `@web-markdown/transform-fetch`  | Fetch `Request/Response` transformation pipeline with gating + observability.         |
-| `@web-markdown/converters`       | Default HTML to Markdown converter (content mode, front matter, URL rewriting hooks). |
-| `@web-markdown/adapters-express` | Express middleware adapter.                                                           |
-| `@web-markdown/adapters-next`    | Next integration primitives (manual wiring for App Router and Pages Router).          |
+| Package                            | Description                                                                           |
+| ---------------------------------- | ------------------------------------------------------------------------------------- |
+| `@web-markdown/core`               | Accept parsing, `Vary` merging, HTTP helpers, shared path matching utilities.         |
+| `@web-markdown/transform-fetch`    | Fetch `Request/Response` transformation pipeline with gating + observability.         |
+| `@web-markdown/converters`         | Default HTML to Markdown converter (content mode, front matter, URL rewriting hooks). |
+| `@web-markdown/adapters-express`   | Express middleware adapter.                                                           |
+| `@web-markdown/adapters-next`      | Next integration primitives (manual wiring for App Router and Pages Router).          |
+| `@web-markdown/adapters-fastify`   | Fastify `onSend` hook adapter (experimental).                                         |
+| `@web-markdown/adapters-koa`       | Koa middleware adapter (experimental).                                                |
+| `@web-markdown/adapters-node-http` | Node `http/https` adapter for custom servers (experimental).                          |
 
 ## Integrations
 
@@ -54,12 +57,13 @@ Shipped today:
 
 - Express adapter package.
 - Next integration primitives package.
+- Fastify adapter package (experimental).
+- Koa adapter package (experimental).
+- Node `http/https` adapter package (experimental).
 
 Planned adapter-package candidates:
 
-- Fastify
-- Koa
-- Node `http/https` baseline adapter
+- Nuxt/Nitro (`h3`)
 
 Frameworks where docs + core packages are usually enough:
 
@@ -75,15 +79,22 @@ Decision criteria and framework-by-framework rationale:
 
 ## Documentation
 
-- [Docs index](`/docs/README.md`)
-- [Architecture overview](`/docs/architecture.md`)
-- [HTTP semantics and caching contract](`/docs/http-semantics.md`)
-- [Integration strategy and adapter roadmap](`/docs/integration-strategy.md`)
-- [Adapter authoring contract](`/docs/adapter-authoring.md`)
-- [Express integration guide](`/docs/integrations/express.md`)
-- [Next integration guide (App + Pages)](`/docs/integrations/next.md`)
-- [Converter behavior and options](`/docs/converter.md`)
-- [Quickstart and common patterns](`/docs/quickstart.md`)
+- [Docs index](/docs/README.md)
+- [Architecture overview](/docs/architecture.md)
+- [HTTP semantics and caching contract](/docs/http-semantics.md)
+- [Integration strategy and adapter roadmap](/docs/integration-strategy.md)
+- [Adapter authoring contract](/docs/adapter-authoring.md)
+- [Express integration guide](/docs/integrations/express.md)
+- [Next integration guide (App + Pages)](/docs/integrations/next.md)
+- [Fastify integration guide](/docs/integrations/fastify.md)
+- [Koa integration guide](/docs/integrations/koa.md)
+- [Node http/https integration guide](/docs/integrations/node-http.md)
+- [Remix integration recipe](/docs/integrations/remix.md)
+- [Astro integration recipe](/docs/integrations/astro.md)
+- [SvelteKit integration recipe](/docs/integrations/sveltekit.md)
+- [Hono integration recipe](/docs/integrations/hono.md)
+- [Converter behavior and options](/docs/converter.md)
+- [Quickstart and common patterns](/docs/quickstart.md)
 
 ## Playgrounds
 
@@ -98,6 +109,7 @@ Decision criteria and framework-by-framework rationale:
 ```bash
 pnpm install
 pnpm test
+pnpm smoke:playgrounds
 pnpm typecheck
 pnpm lint
 pnpm build
