@@ -1,0 +1,14 @@
+{
+  "name": "@web-markdown/playground-node-http",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@web-markdown/adapters-node-http": "workspace:*",
+    "@web-markdown/converters": "workspace:*",
+    "@web-markdown/core": "workspace:*"
+  }
+}

@@ -101,6 +101,9 @@ Decision criteria and framework-by-framework rationale:
 | Adapter           | Command                                                        |
 | ----------------- | -------------------------------------------------------------- |
 | Express           | `pnpm --filter @web-markdown/playground-express start`         |
+| Fastify           | `pnpm --filter @web-markdown/playground-fastify start`         |
+| Koa               | `pnpm --filter @web-markdown/playground-koa start`             |
+| Node http/https   | `pnpm --filter @web-markdown/playground-node-http start`       |
 | Next App Router   | `pnpm --filter @web-markdown/playground-next-app-router dev`   |
 | Next Pages Router | `pnpm --filter @web-markdown/playground-next-pages-router dev` |
 

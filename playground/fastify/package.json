@@ -1,0 +1,14 @@
+{
+  "name": "@web-markdown/playground-fastify",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@web-markdown/adapters-fastify": "workspace:*",
+    "@web-markdown/converters": "workspace:*",
+    "fastify": "^5.6.1"
+  }
+}

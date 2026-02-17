@@ -152,54 +152,70 @@ async function runPlayground(name, startArgs, baseUrl, checks) {
   }
 }
 
-async function checkExpress(baseUrl) {
+async function checkHtmlAdapter(baseUrl, adapterName) {
   const markdown = await fetchWithTimeout(`${baseUrl}/guide`, {
     headers: { Accept: "text/markdown" },
     redirect: "manual",
   });
-  assert(markdown.status === 200, "express /guide markdown should be 200");
+  assert(markdown.status === 200, `${adapterName} /guide markdown should be 200`);
   assert(
     headerIncludes(markdown.headers, "content-type", "text/markdown"),
-    "express /guide markdown should return text/markdown",
+    `${adapterName} /guide markdown should return text/markdown`,
   );
   assert(
     markdown.headers.get("x-markdown-transformed") === "1",
-    "express /guide markdown should set X-Markdown-Transformed: 1",
+    `${adapterName} /guide markdown should set X-Markdown-Transformed: 1`,
   );
   assert(
     headerIncludes(markdown.headers, "vary", "accept"),
-    "express /guide markdown should include Vary: Accept",
+    `${adapterName} /guide markdown should include Vary: Accept`,
   );
 
   const excluded = await fetchWithTimeout(`${baseUrl}/not-markdown`, {
     headers: { Accept: "text/markdown" },
     redirect: "manual",
   });
-  assert(excluded.status === 200, "express /not-markdown should be 200");
+  assert(excluded.status === 200, `${adapterName} /not-markdown should be 200`);
   assert(
     headerIncludes(excluded.headers, "content-type", "text/html"),
-    "express /not-markdown should stay html",
+    `${adapterName} /not-markdown should stay html`,
   );
   assert(
     excluded.headers.get("x-markdown-transformed") === "0",
-    "express /not-markdown should set X-Markdown-Transformed: 0",
+    `${adapterName} /not-markdown should set X-Markdown-Transformed: 0`,
   );
 
   const nonHtml = await fetchWithTimeout(`${baseUrl}/json`, {
     headers: { Accept: "text/markdown" },
     redirect: "manual",
   });
-  assert(nonHtml.status === 200, "express /json should be 200");
+  assert(nonHtml.status === 200, `${adapterName} /json should be 200`);
   assert(
     headerIncludes(nonHtml.headers, "content-type", "application/json"),
-    "express /json should remain json",
+    `${adapterName} /json should remain json`,
   );
 
   const redirect = await fetchWithTimeout(`${baseUrl}/redirect`, {
     headers: { Accept: "text/markdown" },
     redirect: "manual",
   });
-  assert(redirect.status === 302, "express /redirect should return 302");
+  assert(redirect.status === 302, `${adapterName} /redirect should return 302`);
+}
+
+async function checkExpress(baseUrl) {
+  await checkHtmlAdapter(baseUrl, "express");
+}
+
+async function checkFastify(baseUrl) {
+  await checkHtmlAdapter(baseUrl, "fastify");
+}
+
+async function checkKoa(baseUrl) {
+  await checkHtmlAdapter(baseUrl, "koa");
+}
+
+async function checkNodeHttp(baseUrl) {
+  await checkHtmlAdapter(baseUrl, "node-http");
 }
 
 async function checkNextAppRouter(baseUrl) {
@@ -316,6 +332,27 @@ async function main() {
     ["--filter", "@web-markdown/playground-express", "start"],
     "http://localhost:3001",
     [checkExpress],
+  );
+
+  await runPlayground(
+    "playground-fastify",
+    ["--filter", "@web-markdown/playground-fastify", "start"],
+    "http://localhost:3004",
+    [checkFastify],
+  );
+
+  await runPlayground(
+    "playground-koa",
+    ["--filter", "@web-markdown/playground-koa", "start"],
+    "http://localhost:3005",
+    [checkKoa],
+  );
+
+  await runPlayground(
+    "playground-node-http",
+    ["--filter", "@web-markdown/playground-node-http", "start"],
+    "http://localhost:3006",
+    [checkNodeHttp],
   );
 
   await runPlayground(
